@@ -1,12 +1,63 @@
-# AegisStore — Working Prototype (Must-Have Modules)
+# AegisStore
 
-This covers the 5 "must have" items from the build plan: filesystem scanner,
-context safety checks, the Risk-Adaptive Decision Engine (with live-override),
-quarantine + undo with an audit log, and the Storage Story narrative.
+**A Risk-Adaptive Intelligent Storage Optimization Framework for Linux**
 
-Tested and working on Linux (this was built and verified in a Linux sandbox).
+> "AI understands what can be optimized. AegisStore decides whether it is safe to act."
 
-## 1. Setup (5 minutes)
+Most AI storage tools follow one pattern: find files → get an AI opinion → delete. AegisStore separates **AI recommendation from AI authority**. Every optimization candidate is scored on data context, AI confidence, and — critically — the system's *live* CPU/I-O load, before it's ever allowed to run. A candidate the model is confident about can still be deferred in real time if the machine is busy right now.
+
+**🔗 Live demo:** https://aegisstore-9tssxb85wbgqe3j4z79c9q.streamlit.app
+*(Opens with a self-generated demo environment — no setup required to explore it.)*
+
+---
+
+## The core idea
+
+```
+Existing tools:        Find large files → Show user → User decides
+Typical "AI cleaner":  Find "unnecessary" files → AI recommendation → Delete
+AegisStore:            Understand data → Understand context → Predict growth →
+                        Evaluate live workload → Score risk → Decide autonomy →
+                        Explain the decision → Quarantine → Verify → Audit
+```
+
+Nothing is ever hard-deleted. Every action passes through quarantine with SHA-256 integrity verification, a full audit log, and one-click undo.
+
+---
+
+## Modules
+
+All seven modules from the original architecture are implemented, tested, and live in the deployed app — not just diagrammed.
+
+| # | Module | File | What it does |
+|---|--------|------|---------------|
+| 1 | Filesystem Collector | `aegisstore/scanner.py` | Walks the filesystem, hashes files, detects duplicates, classifies Hot/Warm/Cold/Redundant |
+| 2 | Context Intelligence | `aegisstore/context.py` | Checks active-process usage, package ownership (dpkg/rpm), and Git tracking before anything is touched |
+| 3 | ML Prediction Engine | `aegisstore/predictor.py` | Linear-regression growth forecasting from historical usage snapshots |
+| 4 | Real-Time Safety Gate | `aegisstore/safety_gate.py` | Live CPU / memory / I-O-wait monitoring |
+| 5 | Risk-Adaptive Decision Engine | `aegisstore/decision_engine.py` | Scores every candidate 0–100 across data importance, confidence, context, and live load; outputs a risk tier, an action, and human-readable explanatory factors |
+| 6 | Safe Execution Engine | `aegisstore/executor.py` | Quarantine (with integrity verification), undo, batch cleanup, and recovery stats |
+| 7 | Explainability & Dashboard | `aegisstore/storage_story.py`, `aegisstore/storage_intelligence.py`, `dashboard.py` | Plain-English narrative (LLM-backed, with a template fallback), forecast-quality scoring, cleanup-impact estimation, and the full Streamlit UI |
+
+Supporting infrastructure: `aegisstore/db.py` (SQLite persistence for history, decisions, and the audit log), `aegisstore/cli.py` (command-line interface), and a `tests/` suite covering the decision engine, executor, safety gate, and storage intelligence layer (32 tests, all passing).
+
+---
+
+## What the dashboard shows
+
+- Live CPU / I-O-wait / safety-gate status
+- Growth forecast with a usage-history chart and days-to-capacity estimates
+- Potential storage impact of cleanup (before/after projection)
+- Per-candidate risk breakdown with an explicit **"Why this decision?"** section
+- One-click quarantine, or **batch cleanup** of every low-risk candidate at once
+- CSV export of the scan report
+- Recovery & quarantine management (list, undo)
+- Full audit log
+- A **Reset demo** button to rebuild a clean environment on demand — useful for letting someone try the app hands-on without touching a terminal
+
+---
+
+## Setup
 
 ```bash
 python3 -m venv .venv
@@ -14,86 +65,56 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-`anthropic` is optional — if you don't set `ANTHROPIC_API_KEY`, the Storage
-Story falls back to a clean template narrative, so the demo works with zero
-internet dependency. To enable the live AI narrative:
+`anthropic` is optional. Without an `ANTHROPIC_API_KEY` set, the Storage Story narrative falls back to a deterministic template — the app works fully offline.
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_API_KEY=sk-ant-...   # optional
 ```
 
-## 2. Generate demo clutter
+## Run it
 
-Don't risk pointing this at real files during rehearsal. Use the synthetic
-demo disk instead:
+**Dashboard (recommended):**
+```bash
+streamlit run dashboard.py
+```
+On first load it self-generates a demo environment automatically — no manual setup step needed, on your machine or on a deployed link.
 
+**CLI:**
 ```bash
 python3 demo_setup.py ./demo_disk
-```
-
-This creates:
-- an **active/hot** file (should be skipped — recently touched)
-- a **duplicated + old** dataset pair (should be marked LOW risk / AUTOMATE)
-- old build artifacts and logs (MEDIUM risk / SCHEDULE)
-- a moderately recent file (should land as MEDIUM, lower confidence)
-
-## 3. Run the scan
-
-```bash
 python3 -m aegisstore.cli scan ./demo_disk
+python3 -m aegisstore.cli audit
+python3 -m aegisstore.cli undo <quarantine_file_path>
 ```
 
-You'll see, per file: size, age, classification, confidence, duplicate status,
-context checks (active process / package owned / Git tracked), and the final
-risk tier + action. Low-risk items are automatically quarantined; you'll see
-`QUARANTINED -> ... integrity_verified=True`.
+**Prove the real-time override** (a LOW-risk file deferring purely because the system is busy right now — the strongest single proof point):
+```bash
+python3 test_override.py
+```
 
-## 4. Show the live-override "wow moment"
-
-This is the strongest demo beat — a scheduled/low-risk action deferring
-because the *live* system is busy, even though the file itself is low risk.
-
-Easiest way to force it live on stage: open a second terminal and run a CPU
-burner right before your scan:
+## Tests
 
 ```bash
-# terminal 2 — stress the CPU (Ctrl+C to stop)
-yes > /dev/null & yes > /dev/null & yes > /dev/null &
+pip install pytest
+python3 -m pytest tests/ -v
 ```
+32 tests covering the decision engine, executor (including batch quarantine and recovery stats), safety gate, and storage intelligence layer.
 
-Then run the scan in terminal 1 — you'll see `system load: BUSY` and any
-previously LOW-risk candidate downgrade to `DEFER`. Kill the `yes` jobs
-(`kill %1 %2 %3`) and re-run the scan to show it going back to `AUTOMATE`.
+---
 
-If you'd rather not depend on live CPU stress during the actual presentation,
-there's also a deterministic version of this proof in `test_override.py` —
-run it to print both scenarios side by side without touching real load.
+## Tech stack
 
-## 5. Show audit + undo
+Python · Streamlit · psutil · SQLite · Anthropic Claude API (optional, narrative only — never given filesystem access)
 
-```bash
-python3 -m aegisstore.cli audit                       # see everything AegisStore has done
-python3 -m aegisstore.cli undo <quarantine_file_path>  # restore a file — proves reversibility
-```
+---
 
-## 6. Reset between rehearsals
+## Deployment
 
-```bash
-rm -rf demo_disk quarantine aegisstore.db
-python3 demo_setup.py ./demo_disk
-```
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full Streamlit Community Cloud deployment guide. In short: push to GitHub, connect the repo at share.streamlit.io with `dashboard.py` as the entry point, and it deploys in a few minutes — the app is self-bootstrapping, so the deployed link works immediately with zero manual setup.
 
-## What's NOT built yet (by design, for tonight)
+---
 
-- Growth forecasting graph (nice-to-have — the doc's numeric example can be
-  shown as a static slide if you run out of time)
-- Streamlit dashboard (stretch — CLI output is judge-legible and safer to
-  demo live than a UI you haven't stress-tested)
-- Isolation Forest anomaly scoring, systemd packaging (stretch)
+## Known limitations (worth being upfront about)
 
-## Known limitation to be upfront about if asked
-
-`is_active_process()` checks open file handles via `psutil`, which requires
-the script to run with sufficient permission to see other processes' open
-files. On most dev machines this works for user-owned processes; if a judge's
-machine restricts this, mention it's a permissions boundary, not a logic gap.
+- `is_active_process()` checks open file handles via `psutil`, which requires enough permission to see other processes' open files. Works for user-owned processes on most machines; on a restricted host this is a permissions boundary, not a logic gap.
+- The growth forecast is a linear regression over logged usage snapshots — solid for a demo, not a substitute for a real seasonal forecasting model in production.
