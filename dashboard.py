@@ -126,28 +126,29 @@ st.markdown("""
   .section-header {
     font-size: 1rem;
     font-weight: 600;
-    color: #e6edf3;
-    border-left: 3px solid #388bfd;
+    color: #c9d1d9;
+    border-left: 3px solid #1a7abf;
     padding-left: 0.75rem;
     margin: 1.5rem 0 0.8rem 0;
+    letter-spacing: 0.1px;
   }
 
   /* Archaeology story cards */
   .story-card {
-    background: rgba(56,139,253,0.06);
-    border: 1px solid rgba(56,139,253,0.2);
-    border-left: 4px solid #388bfd;
+    background: rgba(26,90,168,0.1);
+    border: 1px solid rgba(26,90,168,0.25);
+    border-left: 4px solid #1a5fa8;
     border-radius: 10px;
     padding: 0.85rem 1.1rem;
     margin-bottom: 0.6rem;
   }
   .story-card .headline {
     font-weight: 600;
-    color: #e6edf3;
+    color: #c9d1d9;
     font-size: 0.9rem;
   }
   .story-card .detail {
-    color: #8b949e;
+    color: #7a8490;
     font-size: 0.82rem;
     margin-top: 0.2rem;
   }
@@ -232,20 +233,28 @@ def make_pie(labels, values, colors, title=""):
     fig = go.Figure(go.Pie(
         labels=labels,
         values=values,
-        hole=0.55,
-        marker=dict(colors=colors, line=dict(color='rgba(0,0,0,0)', width=0)),
+        hole=0.58,
+        marker=dict(
+            colors=colors,
+            line=dict(color='#0d1117', width=3)
+        ),
         textinfo="percent",
-        textfont=dict(size=12, family="JetBrains Mono"),
-        hovertemplate="<b>%{label}</b><br>%{value} files (%{percent})<extra></extra>",
+        textfont=dict(size=13, family="JetBrains Mono", color="#e6edf3"),
+        hovertemplate="<b>%{label}</b><br>%{value} files · %{percent}<extra></extra>",
+        pull=[0.04] * len(labels),
     ))
     fig.update_layout(
-        title=dict(text=title, font=dict(size=13, color="#8b949e"), x=0.5),
+        title=dict(text=title, font=dict(size=12, color="#8b949e", family="Inter"), x=0.5, y=0.97),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#e6edf3", family="Inter"),
-        legend=dict(font=dict(size=11, color="#8b949e"), bgcolor="rgba(0,0,0,0)"),
-        margin=dict(t=40, b=10, l=10, r=10),
-        height=260,
+        font=dict(color="#c9d1d9", family="Inter"),
+        legend=dict(
+            font=dict(size=11, color="#8b949e"),
+            bgcolor="rgba(0,0,0,0)",
+            orientation="v",
+        ),
+        margin=dict(t=36, b=8, l=8, r=8),
+        height=280,
         showlegend=True,
     )
     return fig
@@ -479,48 +488,62 @@ if st.session_state.results is not None:
     st.markdown('<div class="section-header">Visual Breakdown</div>', unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
 
-    # Pie 1: Risk Tier
+    # Pie 1: Risk Tier — deep jewel tones on dark
     risk_counts = {t: sum(1 for r in results if r.get("risk_tier") == t) for t in ["LOW", "MEDIUM", "HIGH"]}
     with pc1:
         if any(risk_counts.values()):
             fig1 = make_pie(
                 labels=list(risk_counts.keys()),
                 values=list(risk_counts.values()),
-                colors=["#3fb950", "#e3b341", "#f85149"],
+                colors=["#1e8c4a", "#b07d12", "#a63228"],   # deep emerald, amber, crimson
                 title="Risk Tier Distribution"
             )
             st.plotly_chart(fig1, use_container_width=True, config={"displayModeBar": False})
 
-    # Pie 2: File Classification
+    # Pie 2: File Classification — cool slate tones
     clf_counts = {}
     for r in results:
         c = r.get("Classification", "Unknown")
         clf_counts[c] = clf_counts.get(c, 0) + 1
-    clf_colors = {"HOT": "#f85149", "WARM": "#e3b341", "COLD": "#388bfd", "REDUNDANT": "#8b949e", "Unknown": "#30363d"}
+    clf_colors = {
+        "HOT":       "#a63228",   # deep crimson
+        "WARM":      "#b07d12",   # amber
+        "COLD":      "#1a5fa8",   # deep cobalt
+        "REDUNDANT": "#6b4db5",   # muted violet
+        "Unknown":   "#3a4655",   # slate
+        "Cold + Redundant": "#2a7a6a",  # teal
+    }
     with pc2:
         if clf_counts:
             fig2 = make_pie(
                 labels=list(clf_counts.keys()),
                 values=list(clf_counts.values()),
-                colors=[clf_colors.get(k, "#58a6ff") for k in clf_counts.keys()],
+                colors=[clf_colors.get(k, "#2a5a8a") for k in clf_counts.keys()],
                 title="File Classification"
             )
             st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
 
-    # Pie 3: Recommended Action
+    # Pie 3: Recommended Actions — distinct hues per action
     rec_counts = {}
     for r in results:
         a = r.get("recommendation") or r.get("Action", "UNKNOWN")
         rec_counts[a] = rec_counts.get(a, 0) + 1
-    rec_colors_map = {"CLEANUP": "#f85149", "ARCHIVE": "#e3b341", "KEEP": "#3fb950",
-                      "REVIEW": "#388bfd", "AUTOMATE": "#3fb950", "DEFER": "#8b949e",
-                      "SKIP": "#30363d", "APPROVAL_REQUIRED": "#e3b341"}
+    rec_colors_map = {
+        "CLEANUP":           "#a63228",   # crimson
+        "ARCHIVE":           "#b07d12",   # amber
+        "KEEP":              "#1e8c4a",   # emerald
+        "REVIEW":            "#1a5fa8",   # cobalt
+        "AUTOMATE":          "#1e8c4a",   # emerald
+        "DEFER":             "#6b4db5",   # violet
+        "SKIP":              "#3a4655",   # slate
+        "APPROVAL_REQUIRED": "#2a7a6a",   # teal
+    }
     with pc3:
         if rec_counts:
             fig3 = make_pie(
                 labels=list(rec_counts.keys()),
                 values=list(rec_counts.values()),
-                colors=[rec_colors_map.get(k, "#58a6ff") for k in rec_counts.keys()],
+                colors=[rec_colors_map.get(k, "#2a5a8a") for k in rec_counts.keys()],
                 title="Recommended Actions"
             )
             st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
