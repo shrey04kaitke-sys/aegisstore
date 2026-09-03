@@ -290,7 +290,7 @@ st.markdown("""
 # ---------------------------------------------------------------------------
 # Workspace Control Row
 # ---------------------------------------------------------------------------
-col_input, col_scan, col_reset = st.columns()
+col_input, col_scan, col_reset = st.columns([3, 1, 1])
 target_dir = col_input.text_input("Directory to scan", value="./demo_disk", label_visibility="collapsed")
 col_input.caption("Target Environment Directory Mount Path")
 scan_clicked = col_scan.button("Run Telemetry Scan", use_container_width=True, type="primary")
@@ -466,7 +466,7 @@ if scan_clicked:
         }
         if fc:
             summary["growth_rate_gb_per_day"] = fc["growth_rate_gb_per_day"]
-            summary["predictions_days"] = fc["predictions_days"]
+            summary["days_to_90pct"] = fc["predictions_days"].get(0.90)
             st.session_state.forecast = fc
         else:
             st.session_state.forecast = None
@@ -621,10 +621,10 @@ if not df.empty:
         "Operational Access Footprint": r.get("usage_profile") or "Stagnant",
         "Future Access Likelihood Ratio": (f"{r['future_usage_probability']*100:.1f}%"
                          if r.get("future_usage_probability") is not None else "0.0%"),
-        "Calculated Risk Value Index": r["Risk Score"],
-        "Risk Class Allocation Group": r["Risk"],
-        "Action Strategy Selection": r.get("recommendation") or r["Action"],
-        "Scoring Engine Evaluation Argument": r.get("recommendation_reason") or r["Reason"],
+        "Calculated Risk Value Index": r.get("Risk Score", f"{r.get('risk_score', 0)} / 100"),
+        "Risk Class Allocation Group": r.get("Risk", r.get("risk_tier", "MEDIUM")),
+        "Action Strategy Selection": r.get("recommendation") or r.get("Action", r.get("action")),
+        "Scoring Engine Evaluation Argument": r.get("recommendation_reason") or r.get("Reason", r.get("reason")),
     } for r in results])
 
     def risk_color_matrix(val):
@@ -648,10 +648,10 @@ if not df.empty:
     selected = next((r for r in results if r["File"] == selected_file), None)
 
     if selected:
-        badge = risk_badge_html(selected["Risk"])
+        badge = risk_badge_html(selected.get("Risk", selected.get("risk_tier", "MEDIUM")))
         col_a, col_b, col_c = st.columns(3)
-        col_a.metric("Assessed Core Element Risk Value", selected["Risk Score"])
-        col_b.metric("Engine Execution Assignment State", selected["Action"])
+        col_a.metric("Assessed Core Element Risk Value", selected.get("Risk Score", f"{selected.get('risk_score', 0)} / 100"))
+        col_b.metric("Engine Execution Assignment State", selected.get("Action", selected.get("action", "DEFER")))
         col_c.metric("Node Tree Existence Timeline Lifespan", f"{selected['Age (days)']} Days")
 
         st.markdown(f"**Target Host Resource Node Location Path Reference:** `{selected['Path']}` &nbsp;&nbsp; {badge}", unsafe_allow_html=True)
@@ -671,7 +671,7 @@ if not df.empty:
             st.markdown(tags_html, unsafe_allow_html=True)
         else:
             st.caption("No custom scalar variables altered baseline mathematical matrix evaluations during pass loops.")
-        st.markdown(f"**Execution Assignment Logic Argument:** {selected['Reason']}")
+        st.markdown(f"**Execution Assignment Logic Argument:** {selected.get('Reason', selected.get('reason', ''))}")
 
         st.markdown("##### 🔄 Counterfactual Matrix Delta Modeling Simulation")
         try:
@@ -692,13 +692,13 @@ if not df.empty:
 
         st.markdown("##### 🎓 Human Feedback Input Tuning Vector Channels")
         fb1, fb2, fb3 = st.columns(3)
-        rec_label = selected.get("recommendation") or selected["Action"]
+        rec_label = selected.get("recommendation") or selected.get("Action") or selected.get("action")
         if fb1.button("Confirm Strategy Vector", key=f"accept_{selected['Path']}", use_container_width=True):
-            db.log_recommendation_feedback(selected["Path"], rec_label, selected["risk_score"],
+            db.log_recommendation_feedback(selected["Path"], rec_label, selected.get("risk_score", 0),
                                             selected.get("future_usage_probability"), accepted=True)
             st.toast("Telemetry adjustment target vectors reinforced positively.")
         if fb2.button("Reject Strategy Vector", key=f"reject_{selected['Path']}", use_container_width=True):
-            db.log_recommendation_feedback(selected["Path"], rec_label, selected["risk_score"],
+            db.log_recommendation_feedback(selected["Path"], rec_label, selected.get("risk_score", 0),
                                             selected.get("future_usage_probability"), accepted=False)
             st.toast("Telemetry boundary weights penalization index updated.")
         fb3.caption(f"Currently staging {db.recommendation_feedback_count()} local user modification samples (Minimum threshold convergence limit requirement: 6+ nodes to recalculate core scalar weights).")
@@ -731,17 +731,17 @@ else:
 # ---------------------------------------------------------------------------
 if results:
     st.markdown('<div class="section-title">Manual System Action Stacks Dispatch Routing Channels</div>', unsafe_allow_html=True)
-    auto_eligible = [r for r in results if r["Action"] == "AUTOMATE"]
-    scheduled = [r for r in results if r["Action"] == "SCHEDULE"]
-    approval = [r for r in results if r["Action"] == "APPROVAL_REQUIRED"]
-    deferred = [r for r in results if r["Action"] == "DEFER"]
-    skipped = [r for r in results if r["Action"] == "SKIP"]
+    auto_eligible = [r for r in results if r.get("Action") == "AUTOMATE" or r.get("action") == "AUTOMATE"]
+    scheduled = [r for r in results if r.get("Action") == "SCHEDULE" or r.get("action") == "SCHEDULE"]
+    approval = [r for r in results if r.get("Action") == "APPROVAL_REQUIRED" or r.get("action") == "APPROVAL_REQUIRED"]
+    deferred = [r for r in results if r.get("Action") == "DEFER" or r.get("action") == "DEFER"]
+    skipped = [r for r in results if r.get("Action") == "SKIP" or r.get("action") == "SKIP"]
 
     if auto_eligible:
         st.markdown(f'<div style="background: rgba(16, 185, 129, 0.05); padding:1rem; border-radius:6px; border:1px solid rgba(16,185,129,0.15); margin-bottom:1rem;"><strong>🟢 Safe Batch Processing Pool Available</strong><br/>{len(auto_eligible)} target workspace nodes meet verified compliance checks and can be instantly offloaded safely.</div>', unsafe_allow_html=True)
         col_batch, col_safety = st.columns(2)
         if col_batch.button("Execute Core Staged Batch Isolation Pipeline", type="primary", use_container_width=True):
-            batch_candidates = [{"path": r["Path"], "reason": r["Reason"]} for r in auto_eligible]
+            batch_candidates = [{"path": r["Path"], "reason": r.get("Reason", r.get("reason", ""))} for r in auto_eligible]
             batch_result = executor.batch_quarantine(batch_candidates, load, verify_safety=True)
             if batch_result["safety_cleared"]:
                 if batch_result["executed"]:
@@ -763,11 +763,11 @@ if results:
             st.markdown(f"**Operational Pipeline Strategy Group: `{action_name}`** — *{guidance}*")
             for r in items:
                 c1, c2 = st.columns(2)
-                c1.markdown(f"<div style='font-family:"Geist Mono"; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r['Reason']}</span></div>", unsafe_allow_html=True)
+                c1.markdown(f"<div style='font-family:"Geist Mono"; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
                 if action_name == "AUTOMATE":
                     if c2.button("Quarantine Target", key=f"q_{r['Path']}", use_container_width=True):
                         try:
-                            info = executor.quarantine_file(r["Path"], r["Reason"])
+                            info = executor.quarantine_file(r["Path"], r.get("Reason", r.get("reason", "")))
                             st.toast(f"Node isolated securely. Checksum matching verification token: {info['integrity_verified']}")
                         except FileNotFoundError:
                             st.toast("Selected workspace object target node shifted scopes outside runtime window maps.")
