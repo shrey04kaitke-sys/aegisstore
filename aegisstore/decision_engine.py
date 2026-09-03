@@ -5,9 +5,36 @@ Combines: data importance, AI confidence, context signals, and real-time system
 workload into ONE numeric risk score, risk tier, action, and explainable factors.
 The output stays backward-compatible with the older {risk_tier, action, reason}
 shape while adding the stronger 0–100 scoring model required by the demo.
+
+Risk-tier thresholds are normally fixed (31/66), but can be overridden by
+calibration.json — written by recalibrate.py after learning from user
+accept/reject feedback on past recommendations. This is what makes the
+"the system learns from feedback" demo moment real rather than cosmetic.
 """
+import json
+from pathlib import Path
 
 LOW, MEDIUM, HIGH = "LOW", "MEDIUM", "HIGH"
+
+CALIBRATION_PATH = Path(__file__).parent.parent / "calibration.json"
+DEFAULT_LOW_THRESHOLD = 31
+DEFAULT_HIGH_THRESHOLD = 66
+
+
+def _load_calibration():
+    """Reads calibration.json if present and valid; falls back to defaults otherwise.
+    Never raises — a missing or corrupt calibration file must never break scoring."""
+    if not CALIBRATION_PATH.exists():
+        return DEFAULT_LOW_THRESHOLD, DEFAULT_HIGH_THRESHOLD
+    try:
+        data = json.loads(CALIBRATION_PATH.read_text())
+        low = float(data.get("low_threshold", DEFAULT_LOW_THRESHOLD))
+        high = float(data.get("high_threshold", DEFAULT_HIGH_THRESHOLD))
+        if 0 <= low < high <= 100:
+            return low, high
+    except (json.JSONDecodeError, OSError, ValueError, TypeError):
+        pass
+    return DEFAULT_LOW_THRESHOLD, DEFAULT_HIGH_THRESHOLD
 
 
 def assess(candidate: dict, ctx: dict, load: dict, system_busy: bool) -> dict:
@@ -145,9 +172,10 @@ def assess(candidate: dict, ctx: dict, load: dict, system_busy: bool) -> dict:
 
 
 def _tier_for_score(score: int) -> str:
-    if score >= 66:
+    low, high = _load_calibration()
+    if score >= high:
         return HIGH
-    if score >= 31:
+    if score >= low:
         return MEDIUM
     return LOW
 
@@ -172,6 +200,14 @@ def _reason_for_decision(risk_tier, action, confidence, system_busy, cpu, io_wai
     if risk_tier == MEDIUM:
         return f"Moderate risk due to confidence or file type; schedule cleanup during a safe window."
     return f"High-risk candidate requiring approval because confidence is low or ownership is ambiguous."
+
+
+def current_thresholds() -> dict:
+    """Exposes the active LOW/HIGH thresholds so the dashboard can show
+    exactly what the recalibration step changed."""
+    low, high = _load_calibration()
+    return {"low_threshold": low, "high_threshold": high,
+            "is_default": not CALIBRATION_PATH.exists()}
 
 
 def _result(score, tier, action, reason, factors):

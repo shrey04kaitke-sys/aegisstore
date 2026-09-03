@@ -1,120 +1,974 @@
-# AegisStore
+# 🛡️ AegisStore
 
-**A Risk-Adaptive Intelligent Storage Optimization Framework for Linux**
+### Risk-Adaptive AI-Powered Intelligent Storage Optimizer for Linux
 
-> "AI understands what can be optimized. AegisStore decides whether it is safe to act."
+> **AegisStore doesn't just find files to clean — it understands usage, predicts future value, evaluates risk, considers live system load, explains its decisions, and keeps the user in control.**
 
-Most AI storage tools follow one pattern: find files → get an AI opinion → delete. AegisStore separates **AI recommendation from AI authority**. Every optimization candidate is scored on data context, AI confidence, and — critically — the system's *live* CPU/I-O load, before it's ever allowed to run. A candidate the model is confident about can still be deferred in real time if the machine is busy right now.
+AegisStore is an AI-powered storage intelligence and optimization system designed for Linux/Ubuntu. It analyzes filesystem behavior, identifies redundant and low-value files, predicts future file usage, forecasts storage growth, and generates explainable cleanup and archiving recommendations.
 
-**🔗 Live demo:** https://aegisstore-9tssxb85wbgqe3j4z79c9q.streamlit.app
-*(Opens with a self-generated demo environment — no setup required to explore it.)*
+Unlike traditional storage cleaners that primarily rely on file size or age, AegisStore combines **usage intelligence, machine learning, dependency awareness, risk assessment, and live system telemetry** to make safer and more meaningful recommendations.
 
 ---
 
-## The core idea
+## 🚀 Live Demo
 
+🌐 **Streamlit Dashboard**
+
+https://aegisstore-9tssxb85wbgqe3j4z79c9q.streamlit.app/
+
+💻 **GitHub Repository**
+
+https://github.com/SHIVANI11233/aegisstore
+
+---
+
+# 🎯 Problem Statement
+
+Modern Linux systems accumulate large amounts of data over time:
+
+- Unused files
+- Duplicate files
+- Old project artifacts
+- Temporary files
+- Logs and caches
+- Large files with little future value
+- Files that may still be required by applications or system components
+
+Traditional cleanup tools generally use simple rules such as:
+
+```text
+Large file + old file = delete
+````
+
+This can be unsafe because **age and size alone do not determine whether a file is valuable or safe to remove**.
+
+AegisStore addresses this problem by asking:
+
+> **"What is this file doing, how likely is it to be useful again, how much storage does it consume, and is it safe to optimize right now?"**
+
+---
+
+# 💡 Solution
+
+AegisStore creates an intelligent storage decision pipeline:
+
+```text
+                    Linux / Ubuntu
+                         │
+                         ▼
+                Filesystem Scanner
+                         │
+                         ▼
+               Usage Intelligence
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+        Duplicates    File Usage    Metadata
+             │           │           │
+             └───────────┼───────────┘
+                         ▼
+                 ML Future Usage
+                    Prediction
+                         │
+                         ▼
+             Cleanup / Archive Engine
+                         │
+                         ▼
+                Risk Assessment
+                         │
+                         ▼
+               Live System Load
+                 CPU / RAM / I/O
+                         │
+                         ▼
+                Decision Engine
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+       KEEP           REVIEW        OPTIMIZE
+                                      │
+                              ┌───────┴───────┐
+                              ▼               ▼
+                          CLEANUP          ARCHIVE
+                         / DEFER
+                              │
+                              ▼
+                     Explanation + Audit
+                              │
+                              ▼
+                     Streamlit Dashboard
 ```
-Existing tools:        Find large files → Show user → User decides
-Typical "AI cleaner":  Find "unnecessary" files → AI recommendation → Delete
-AegisStore:            Understand data → Understand context → Predict growth →
-                        Evaluate live workload → Score risk → Decide autonomy →
-                        Explain the decision → Quarantine → Verify → Audit
+
+---
+
+# ✨ Key Features
+
+## 1. 🔍 Intelligent Filesystem Scanning
+
+AegisStore scans a controlled filesystem location and collects information such as:
+
+* File path
+* File size
+* Access time
+* Modification time
+* SHA-256 hash
+* File classification
+* Usage characteristics
+
+The scanner also avoids unnecessary directories such as:
+
+```text
+.git
+node_modules
+__pycache__
+.venv
 ```
 
-Nothing is ever hard-deleted. Every action passes through quarantine with SHA-256 integrity verification, a full audit log, and one-click undo.
+---
+
+# 2. 📊 Usage Intelligence
+
+AegisStore analyzes how files are being used rather than relying only on their age.
+
+Files can be classified into:
+
+| Profile    | Meaning                     |
+| ---------- | --------------------------- |
+| 🔥 HOT     | Frequently or recently used |
+| 🟡 WARM    | Moderately used             |
+| ❄️ COLD    | Rarely used                 |
+| ⚫ INACTIVE | Little or no observed usage |
+
+Usage features include:
+
+* Access frequency
+* Recent access ratio
+* Days since last access
+* Modification age
+* Historical usage
 
 ---
 
-## Modules
+# 3. 🤖 Future Usage Prediction
 
-All seven modules from the original architecture are implemented, tested, and live in the deployed app — not just diagrammed.
+AegisStore uses a machine-learning model to estimate whether a file is likely to be accessed again.
 
-| # | Module | File | What it does |
-|---|--------|------|---------------|
-| 1 | Filesystem Collector | `aegisstore/scanner.py` | Walks the filesystem, hashes files, detects duplicates, classifies Hot/Warm/Cold/Redundant |
-| 2 | Context Intelligence | `aegisstore/context.py` | Checks active-process usage, package ownership (dpkg/rpm), and Git tracking before anything is touched |
-| 3 | ML Prediction Engine | `aegisstore/predictor.py` | Linear-regression growth forecasting from historical usage snapshots |
-| 4 | Real-Time Safety Gate | `aegisstore/safety_gate.py` | Live CPU / memory / I-O-wait monitoring |
-| 5 | Risk-Adaptive Decision Engine | `aegisstore/decision_engine.py` | Scores every candidate 0–100 across data importance, confidence, context, and live load; outputs a risk tier, an action, and human-readable explanatory factors |
-| 6 | Safe Execution Engine | `aegisstore/executor.py` | Quarantine (with integrity verification), undo, batch cleanup, and recovery stats |
-| 7 | Explainability & Dashboard | `aegisstore/storage_story.py`, `aegisstore/storage_intelligence.py`, `dashboard.py` | Plain-English narrative (LLM-backed, with a template fallback), forecast-quality scoring, cleanup-impact estimation, and the full Streamlit UI |
+### Model
 
-Supporting infrastructure: `aegisstore/db.py` (SQLite persistence for history, decisions, and the audit log), `aegisstore/cli.py` (command-line interface), and a `tests/` suite covering the decision engine, executor, safety gate, and storage intelligence layer (32 tests, all passing).
+**Random Forest Classifier**
+
+The model considers features including:
+
+```text
+access_count_7d
+access_count_30d
+access_count_90d
+total_access_count
+days_since_last_access
+recent_access_ratio
+size_bytes
+days_since_modified
+```
+
+The model produces a:
+
+```text
+Future Usage Probability
+```
+
+which is used as an advisory signal for recommendations.
+
+### Prototype Evaluation
+
+The controlled synthetic evaluation achieved approximately:
+
+| Metric    |  Score |
+| --------- | -----: |
+| Accuracy  | 93.33% |
+| Precision | 96.53% |
+| Recall    | 93.73% |
+| F1 Score  | 95.11% |
+| ROC-AUC   | 98.45% |
+
+> ⚠️ These are **controlled synthetic/prototype results**, not production performance on a real Ubuntu population.
 
 ---
 
-## What the dashboard shows
+# 4. ♻️ Duplicate Detection
 
-- Live CPU / I-O-wait / safety-gate status
-- Growth forecast with a usage-history chart and days-to-capacity estimates
-- Potential storage impact of cleanup (before/after projection)
-- Per-candidate risk breakdown with an explicit **"Why this decision?"** section
-- One-click quarantine, or **batch cleanup** of every low-risk candidate at once
-- CSV export of the scan report
-- Recovery & quarantine management (list, undo)
-- Full audit log
-- A **Reset demo** button to rebuild a clean environment on demand — useful for letting someone try the app hands-on without touching a terminal
+AegisStore calculates SHA-256 hashes to identify duplicate files.
+
+Example:
+
+```text
+file_A.zip ─────┐
+file_B.zip ─────┼──► Same SHA-256 → Duplicate
+file_C.zip ─────┘
+```
+
+Duplicate files can significantly increase storage usage without providing additional value.
 
 ---
 
-## Setup
+# 5. 🧠 Explainable Recommendations
+
+AegisStore does not simply output:
+
+```text
+DELETE file
+```
+
+Instead, it provides recommendations such as:
+
+```text
+KEEP
+CLEANUP
+ARCHIVE
+REVIEW
+```
+
+Each recommendation contains an explanation based on signals such as:
+
+* Future usage probability
+* File age
+* File size
+* Duplicate status
+* Usage profile
+* Reproducibility
+* Safety context
+
+---
+
+# 6. 🛡️ Risk-Adaptive Decision Engine
+
+AegisStore introduces a risk layer between recommendation and optimization.
+
+Each candidate receives a:
+
+```text
+Risk Score: 0 – 100
+```
+
+and a corresponding risk tier:
+
+```text
+LOW
+MEDIUM
+HIGH
+```
+
+The decision engine can produce actions such as:
+
+```text
+AUTOMATE
+SCHEDULE
+APPROVAL_REQUIRED
+DEFER
+SKIP
+```
+
+This prevents the system from treating every cleanup candidate equally.
+
+---
+
+# 7. 🔒 Dependency-Aware Safety
+
+Before optimization is considered, AegisStore checks whether a file may be important to the system.
+
+Safety signals include:
+
+* Active/open file
+* Package-manager ownership
+* Git tracking
+* Symbolic link
+* Symlink target
+* systemd references
+* cron references
+
+For example:
+
+```text
+Package-owned file
+       │
+       ▼
+    REVIEW
+       │
+       X
+ No automatic optimization
+```
+
+This makes the system **recommendation-first rather than deletion-first**.
+
+---
+
+# 8. ⚡ Live System Load Awareness
+
+AegisStore monitors the current system state using:
+
+* CPU utilization
+* RAM utilization
+* I/O wait
+* Disk read activity
+* Disk write activity
+
+System state is categorized as:
+
+```text
+NORMAL
+BUSY
+CRITICAL
+```
+
+If the system is busy, optimization can be deferred.
+
+Example:
+
+```text
+CPU: 81%
+I/O Wait: 14%
+
+       ↓
+
+System Busy
+
+       ↓
+
+DEFER optimization
+```
+
+This allows AegisStore to consider not only **what action to take**, but also **when it is safe to take it**.
+
+---
+
+# 9. 🕐 Energy / Performance-Aware Scheduling
+
+AegisStore records scheduling decisions such as:
+
+```text
+DEFERRED
+RETRIED
+EXECUTED
+```
+
+The dashboard can display a timeline such as:
+
+```text
+14:02:11
+DEFERRED
+CPU 81% | RAM 74% | I/O Wait 14%
+
+        ↓
+
+02:00:04
+EXECUTED
+CPU 9% | System load within safe limits
+```
+
+This demonstrates that optimization can be aligned with system workload instead of blindly running at any time.
+
+> AegisStore does not require a background daemon or uncontrolled autonomous scheduler.
+
+---
+
+# 10. 🔄 Counterfactual Explanations
+
+AegisStore can answer:
+
+> **"What would have changed the decision?"**
+
+For example:
+
+```text
+Current Risk: 72
+Action: REVIEW
+
+If the file were 7 days newer:
+
+Risk: 62
+Action: SCHEDULE
+```
+
+This makes the decision engine more transparent and easier to understand.
+
+Counterfactual explanations are generated by re-evaluating the existing decision engine with controlled input changes.
+
+---
+
+# 11. 📈 Storage Forecasting
+
+AegisStore analyzes historical storage usage to estimate future storage requirements.
+
+The forecasting module provides:
+
+* Current storage utilization
+* Growth rate
+* Estimated time to storage thresholds
+* Forecast horizon
+* Sample count
+* Forecast quality
+
+Example:
+
+```text
+Current Usage       : 72%
+Estimated Growth    : 1.8 GB/day
+
+85% threshold       : ~7 days
+90% threshold       : ~10 days
+95% threshold       : ~13 days
+```
+
+---
+
+# 12. 🧹 Cleanup Recommendations
+
+AegisStore identifies files that may be suitable for cleanup based on multiple signals.
+
+Example:
+
+```text
+Duplicate
++
+Low future-use probability
++
+Large storage impact
++
+No safety flags
+
+        ↓
+
+CLEANUP
+```
+
+The system does **not blindly delete files**.
+
+---
+
+# 13. 📦 Archive Recommendations
+
+Some files may have low near-term usage but still have long-term value.
+
+Instead of deleting them, AegisStore can recommend:
+
+```text
+ARCHIVE
+```
+
+This is particularly useful for:
+
+* Old project artifacts
+* Historical datasets
+* Large logs
+* Rarely accessed files
+* Backup-like data
+
+---
+
+# 14. 🗑️ Reversible Quarantine
+
+AegisStore uses a controlled quarantine workflow for supported file operations.
+
+Instead of immediately destroying data:
+
+```text
+Original File
+     │
+     ▼
+Quarantine
+     │
+     ▼
+Audit Log
+```
+
+The operation can be tracked through the application's audit system.
+
+The design philosophy is:
+
+> **Recommend first. Execute carefully. Keep the user in control.**
+
+---
+
+# 15. 🧾 Audit Logging
+
+AegisStore maintains an audit trail of important actions and decisions.
+
+Examples include:
+
+```text
+CLEANUP
+ARCHIVE
+DEFERRED
+RETRIED
+QUARANTINE
+```
+
+Each event can contain information such as:
+
+* Timestamp
+* File path
+* Action
+* Reason
+* System load
+* Quarantine location
+* Reversibility
+
+This improves transparency and accountability.
+
+---
+
+# 16. 🛡️ Threat Model & Safety Guarantees
+
+AegisStore follows several safety principles:
+
+### No uncontrolled deletion
+
+The system does not automatically delete arbitrary files.
+
+### Open files are protected
+
+Files currently used by active processes are treated as unsafe optimization candidates.
+
+### Dependency awareness
+
+Package-owned, Git-tracked, symlink-related, systemd-referenced, and cron-referenced files can be flagged.
+
+### Risk-based gating
+
+Recommendations are evaluated using risk and safety signals.
+
+### Load-aware deferral
+
+Optimization can be postponed when system resources are under heavy load.
+
+### Human-in-the-loop
+
+The final decision remains with the user.
+
+---
+
+# 🧩 Technology Stack
+
+## Programming
+
+* Python 3.12+
+* SQLite
+
+## AI / Machine Learning
+
+* Scikit-learn
+* Random Forest
+* NumPy
+
+## System Monitoring
+
+* psutil
+
+## Dashboard
+
+* Streamlit
+* Pandas
+
+## Storage Analysis
+
+* SHA-256
+* SQLite usage history
+
+## Development
+
+* Git
+* GitHub
+* Ubuntu / Linux
+* WSL
+* Python Virtual Environment
+
+---
+
+# 📁 Project Structure
+
+```text
+aegisstore/
+│
+├── aegisstore/
+│   ├── __init__.py
+│   ├── scanner.py
+│   ├── context.py
+│   ├── db.py
+│   ├── usage_history.py
+│   ├── usage_intelligence.py
+│   ├── usage_analyzer.py
+│   ├── future_usage_model.py
+│   ├── ml_training.py
+│   ├── predictor.py
+│   ├── storage_intelligence.py
+│   ├── recommendation_engine.py
+│   ├── decision_engine.py
+│   ├── safety_gate.py
+│   ├── counterfactual.py
+│   └── ...
+│
+├── tests/
+│   ├── ...
+│
+├── dashboard.py
+├── demo_setup.py
+├── seed_history.py
+├── demos/
+│   ├── demo_scan.py
+│   ├── demo_override.py
+│   ├── demo_future_usage.py
+│   ├── demo_ml_behavior.py
+│   └── demo_recommendations.py
+├── requirements.txt
+├── README.md
+├── DEPLOYMENT.md
+├── LICENSE
+└── .env.example
+```
+
+---
+
+# ⚙️ Installation
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/SHIVANI11233/aegisstore.git
+cd aegisstore
+```
+
+---
+
+## 2. Create a virtual environment
 
 ```bash
 python3 -m venv .venv
+```
+
+Activate it:
+
+```bash
 source .venv/bin/activate
+```
+
+---
+
+## 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-`anthropic` is optional. Without an `ANTHROPIC_API_KEY` set, the Storage Story narrative falls back to a deterministic template — the app works fully offline.
+---
 
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...   # optional
-```
+# ▶️ Running AegisStore
 
-## Run it
+Launch the Streamlit dashboard:
 
-**Dashboard (recommended):**
 ```bash
 streamlit run dashboard.py
 ```
-On first load it self-generates a demo environment automatically — no manual setup step needed, on your machine or on a deployed link.
 
-**CLI:**
-```bash
-python3 demo_setup.py ./demo_disk
-python3 -m aegisstore.cli scan ./demo_disk
-python3 -m aegisstore.cli audit
-python3 -m aegisstore.cli undo <quarantine_file_path>
-```
-
-**Prove the real-time override** (a LOW-risk file deferring purely because the system is busy right now — the strongest single proof point):
-```bash
-python3 test_override.py
-```
-
-## Tests
-
-```bash
-pip install pytest
-python3 -m pytest tests/ -v
-```
-32 tests covering the decision engine, executor (including batch quarantine and recovery stats), safety gate, and storage intelligence layer.
+The dashboard will be available locally through the Streamlit URL shown in the terminal.
 
 ---
 
-## Tech stack
+# 🧪 Running Tests
 
-Python · Streamlit · psutil · SQLite · Anthropic Claude API (optional, narrative only — never given filesystem access)
+Run the complete automated test suite:
+
+```bash
+pytest tests/ -q
+```
+
+Current project verification:
+
+```text
+32 passed
+```
+
+The `demos/` folder holds standalone experiment/demo scripts (`demo_scan.py`, `demo_override.py`, `demo_future_usage.py`, `demo_ml_behavior.py`, `demo_recommendations.py`) — these print results for a human to read rather than asserting pass/fail, so they are run individually rather than through pytest:
+
+```bash
+python3 demos/demo_override.py
+```
+
+Compile-check the dashboard:
+
+```bash
+python -m py_compile dashboard.py
+```
 
 ---
 
-## Deployment
+# 🖥️ Dashboard Workflow
 
-See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the full Streamlit Community Cloud deployment guide. In short: push to GitHub, connect the repo at share.streamlit.io with `dashboard.py` as the entry point, and it deploys in a few minutes — the app is self-bootstrapping, so the deployed link works immediately with zero manual setup.
+The recommended workflow is:
+
+```text
+1. Open Dashboard
+       ↓
+2. Select controlled scan directory
+       ↓
+3. Run Scan
+       ↓
+4. Analyze file usage
+       ↓
+5. View duplicate files
+       ↓
+6. Review future-use predictions
+       ↓
+7. Review cleanup/archive recommendations
+       ↓
+8. Inspect risk score
+       ↓
+9. Review safety context
+       ↓
+10. Check scheduling timeline
+       ↓
+11. Review counterfactual explanation
+       ↓
+12. User decides whether to act
+```
 
 ---
 
-## Known limitations (worth being upfront about)
+# 🔐 Safety Design
 
-- `is_active_process()` checks open file handles via `psutil`, which requires enough permission to see other processes' open files. Works for user-owned processes on most machines; on a restricted host this is a permissions boundary, not a logic gap.
-- The growth forecast is a linear regression over logged usage snapshots — solid for a demo, not a substitute for a real seasonal forecasting model in production.
+AegisStore is intentionally designed as a **recommendation-first system**.
+
+It is **not** intended to function as an unrestricted filesystem deletion tool.
+
+The architecture prioritizes:
+
+```text
+Analyze
+   ↓
+Predict
+   ↓
+Explain
+   ↓
+Assess Risk
+   ↓
+Check Safety
+   ↓
+Recommend
+   ↓
+User Decision
+   ↓
+Controlled Action
+```
+
+---
+
+# 🎯 Design Philosophy
+
+AegisStore follows five core principles:
+
+### 1. Intelligence
+
+Understand file behavior rather than relying only on age and size.
+
+### 2. Safety
+
+Never assume that an old file is safe to remove.
+
+### 3. Explainability
+
+Every important recommendation should have a reason.
+
+### 4. Adaptability
+
+System load and environmental conditions should influence optimization timing.
+
+### 5. Human Control
+
+The system recommends; the user decides.
+
+---
+
+# 📊 What Makes AegisStore Different?
+
+Traditional storage tools often answer:
+
+> **"Where is my storage being used?"**
+
+AegisStore aims to answer:
+
+> **"What is using my storage, how valuable is it likely to be in the future, what should I do about it, why, and is now a safe time to act?"**
+
+### Comparison
+
+| Capability                  | Traditional Cleaner | AegisStore |
+| --------------------------- | ------------------- | ---------- |
+| File scanning               | ✅                   | ✅          |
+| Duplicate detection         | ✅                   | ✅          |
+| Age-based analysis          | ✅                   | ✅          |
+| Usage intelligence          | Limited             | ✅          |
+| Future usage prediction     | ❌                   | ✅          |
+| ML-assisted recommendations | ❌                   | ✅          |
+| Risk scoring                | ❌                   | ✅          |
+| Dependency awareness        | Limited             | ✅          |
+| CPU/RAM/I/O awareness       | ❌                   | ✅          |
+| Load-aware deferral         | ❌                   | ✅          |
+| Counterfactual explanations | ❌                   | ✅          |
+| Audit trail                 | Limited             | ✅          |
+| Human-in-the-loop           | Varies              | ✅          |
+| Controlled quarantine       | Varies              | ✅          |
+
+---
+
+# 🏆 Project Highlights
+
+AegisStore combines several layers into a single storage intelligence pipeline:
+
+```text
+Filesystem Intelligence
+        +
+Usage Analytics
+        +
+Machine Learning
+        +
+Duplicate Detection
+        +
+Storage Forecasting
+        +
+Risk Assessment
+        +
+Dependency Awareness
+        +
+Live System Telemetry
+        +
+Scheduling
+        +
+Explainability
+        +
+Auditability
+```
+
+This combination transforms storage cleanup from a simple rule-based task into a **risk-aware decision-support system**.
+
+---
+
+# 17. 🎓 Feedback-Driven Recalibration
+
+Every recommendation shown in the dashboard has 👍 Accept / 👎 Reject buttons.
+Each click is logged with the file's risk score and future-usage probability.
+
+Once at least 6 feedback samples exist (with at least one accept and one
+reject), clicking **"Recalibrate now"** fits a logistic regression mapping
+risk score to acceptance probability, and derives new LOW/HIGH risk-tier
+boundaries from where that curve crosses 0.5 and 0.15.
+
+This is a genuine learning loop, not a cosmetic reset: the new boundary is
+written to `calibration.json`, and `decision_engine.py` reads it on every
+future scoring call — so the *same file with the same risk score* can land
+in a different risk tier after recalibration, because the boundary itself
+moved based on what users actually accepted or rejected.
+
+```text
+20 feedback samples (10 accepted low-risk cleanups, 10 rejected high-risk ones)
+        │
+        ▼
+Logistic regression fit: risk_score -> P(accept)
+        │
+        ▼
+LOW threshold:  31   -> 47.5
+HIGH threshold: 66   -> 57.5
+```
+
+Reset to defaults anytime with the **"Reset calibration to defaults"** button,
+or `python3 recalibrate.py --reset`.
+
+---
+
+# 18. 📜 Digital Archaeology Summary Mode
+
+Instead of a flat file list, AegisStore groups scan results into short,
+plain-English stories a non-technical reader can act on immediately:
+
+```text
+"40.0 MB of inactive data in backups/, untouched for 140+ days"
+"27.0 MB of inactive data in build/, untouched for 187+ days"
+"40.0 MB across 1 duplicate file in datasets/"
+```
+
+Groups are formed from data the scan already computed (usage profile +
+duplicate status + parent directory) — no additional filesystem access is
+performed to build these summaries.
+
+---
+
+# ⚠️ Limitations
+
+AegisStore is a project/prototype and has intentionally defined boundaries.
+
+### Usage history
+
+File usage history is based on events recorded by AegisStore rather than automatically monitoring every filesystem access on the system.
+
+### ML training
+
+The current model evaluation uses controlled/synthetic data and should not be interpreted as production-grade performance.
+
+### Scheduling
+
+The project demonstrates energy/performance-aware scheduling logic but does not implement an unrestricted background daemon.
+
+### Filesystem scope
+
+Scanning should be performed on controlled directories rather than blindly targeting the entire operating system.
+
+### Recommendations
+
+AegisStore provides recommendations and safety analysis; it does not guarantee that every recommendation is correct.
+
+---
+
+# 🔮 Future Scope
+
+Potential future improvements include:
+
+* Real filesystem event monitoring using `inotify`
+* Larger real-world usage datasets
+* More advanced time-series forecasting
+* Personalized storage behavior models
+* Cloud/object-storage integration
+* Intelligent compression recommendations
+* Automatic archive tier selection
+* Container-aware storage optimization
+* Better dependency graph analysis
+* More advanced anomaly detection
+* Desktop notifications
+* Optional background scheduling service
+
+---
+
+# 👩‍💻 Project Team
+
+**Shivani Bhosale**
+
+B.Tech — Artificial Intelligence & Data Science
+Vishwakarma Institute of Technology, Pune
+
+---
+
+# 📜 License
+
+This project is licensed under the terms specified in the repository's `LICENSE` file.
+
+---
+
+# ⭐ Final Project Statement
+
+> **AegisStore is a risk-adaptive AI-powered storage intelligence system for Linux that understands file usage, predicts future value, identifies redundancy, forecasts storage growth, evaluates system and dependency risks, explains its decisions, and keeps the user in control of optimization.**
+
+---
+
+## 🔗 Links
+
+* 🌐 **Live Dashboard:** [https://aegisstore-9tssxb85wbgqe3j4z79c9q.streamlit.app/](https://aegisstore-9tssxb85wbgqe3j4z79c9q.streamlit.app/)
+* 💻 **GitHub:** [https://github.com/SHIVANI11233/aegisstore](https://github.com/SHIVANI11233/aegisstore)
+
+---
+
+### Built with Python, Machine Learning, Linux, and a safety-first mindset. 🛡️

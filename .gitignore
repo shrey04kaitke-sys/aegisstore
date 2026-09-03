@@ -12,3 +12,6 @@ aegisstore.db
 
 # Env
 .env
+
+# Recalibration output — user-specific, never commit
+calibration.json

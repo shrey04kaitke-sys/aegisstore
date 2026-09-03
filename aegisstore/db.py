@@ -66,7 +66,24 @@ def init_db():
         quarantine_path TEXT,
         reversible INTEGER
     );
-    """)
+        CREATE TABLE IF NOT EXISTS file_usage_events (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp REAL,
+        path TEXT,
+        event_type TEXT,
+        source TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS recommendation_feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp REAL,
+        path TEXT,
+        recommendation TEXT,
+        risk_score REAL,
+        future_usage_probability REAL,
+        accepted INTEGER
+    );
+     """)
     conn.commit()
     conn.close()
 
@@ -132,3 +149,161 @@ def usage_series(path):
     ).fetchall()
     conn.close()
     return rows
+# ============================================================
+# File Usage Event Tracking
+# ============================================================
+
+def log_file_usage(
+    path: str,
+    event_type: str = "access",
+    timestamp: float | None = None,
+    source: str = "tracker",
+):
+    """Record a file usage event."""
+    import time
+
+    if timestamp is None:
+        timestamp = time.time()
+
+    with get_conn() as conn:
+        conn.execute(
+            """
+            INSERT INTO file_usage_events
+            (timestamp, path, event_type, source)
+            VALUES (?, ?, ?, ?)
+            """,
+            (timestamp, str(path), event_type, source),
+        )
+        conn.commit()
+
+
+def file_usage_events(
+    path: str | None = None,
+    since: float | None = None,
+):
+    """Return recorded file usage events."""
+    query = """
+        SELECT id, timestamp, path, event_type, source
+        FROM file_usage_events
+        WHERE 1=1
+    """
+
+    params = []
+
+    if path is not None:
+        query += " AND path = ?"
+        params.append(str(path))
+
+    if since is not None:
+        query += " AND timestamp >= ?"
+        params.append(since)
+
+    query += " ORDER BY timestamp DESC"
+
+    with get_conn() as conn:
+        rows = conn.execute(query, params).fetchall()
+
+    return [dict(row) for row in rows]
+
+
+def file_usage_counts(path: str):
+    """Return usage counts for the last 7, 30, 90 days and all time."""
+    import time
+
+    now = time.time()
+
+    events = file_usage_events(path)
+
+    return {
+        "7d": sum(
+            1 for event in events
+            if event["timestamp"] >= now - 7 * 86400
+        ),
+        "30d": sum(
+            1 for event in events
+            if event["timestamp"] >= now - 30 * 86400
+        ),
+        "90d": sum(
+            1 for event in events
+            if event["timestamp"] >= now - 90 * 86400
+        ),
+        "all": len(events),
+    }
+
+
+def latest_usage_event(path: str):
+    """Return the most recent usage event for a file."""
+    events = file_usage_events(path)
+
+    return events[0] if events else None
+
+
+def clear_file_usage_events():
+    """Clear all recorded file usage events."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM file_usage_events")
+        conn.commit()
+def log_schedule_event(path, event, load, reason=""):
+    """
+    Record energy/performance-aware scheduling events.
+
+    Examples:
+      DEFERRED
+      RETRIED
+      EXECUTED
+    """
+    cpu = load.get("cpu_percent")
+    ram = load.get("memory_percent")
+    io_wait = load.get("io_wait_percent")
+
+    detail = (
+        f"CPU {cpu:.0f}% | "
+        f"RAM {ram:.0f}% | "
+        f"I/O Wait {io_wait:.0f}%"
+    )
+
+    if reason:
+        detail += f" | {reason}"
+
+    log_action(
+        path,
+        event,
+        detail,
+        quarantine_path=None,
+        reversible=False,
+    )
+
+
+def log_recommendation_feedback(path, recommendation, risk_score, future_usage_probability, accepted):
+    """
+    Record whether a user accepted or rejected a recommendation.
+    This is the raw signal the recalibration script later learns from.
+    """
+    conn = get_conn()
+    conn.execute(
+        """INSERT INTO recommendation_feedback
+           (timestamp, path, recommendation, risk_score, future_usage_probability, accepted)
+           VALUES (?,?,?,?,?,?)""",
+        (time.time(), str(path), recommendation, float(risk_score),
+         float(future_usage_probability) if future_usage_probability is not None else None,
+         int(bool(accepted))),
+    )
+    conn.commit()
+    conn.close()
+
+
+def recommendation_feedback_rows(limit=500):
+    conn = get_conn()
+    rows = conn.execute(
+        "SELECT * FROM recommendation_feedback ORDER BY id DESC LIMIT ?", (limit,)
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def recommendation_feedback_count():
+    conn = get_conn()
+    row = conn.execute("SELECT COUNT(*) as n FROM recommendation_feedback").fetchone()
+    conn.close()
+    return row["n"] if row else 0
+
