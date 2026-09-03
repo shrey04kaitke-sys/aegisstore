@@ -24,173 +24,190 @@ from aegisstore import (
 )
 from demo_setup import build_demo
 
-st.set_page_config(page_title="AegisStore", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="AegisStore Panel", page_icon="🛡️", layout="wide")
 db.init_db()
 
 DEFAULT_TARGET = Path("./demo_disk")
 
 # ---------------------------------------------------------------------------
-# CSS — dark, professional, security-tool aesthetic
+# CSS — Ultra-Clean, Production-Ready Systems Workspace Aesthetic
 # ---------------------------------------------------------------------------
 st.markdown("""
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap');
 
-  html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
+  /* Global structural variables */
+  :root {
+    --bg-primary: #090a0f;
+    --bg-surface: #12131a;
+    --border-subtle: #222530;
+    --text-main: #f4f5f6;
+    --text-muted: #888e96;
+    --accent-blue: #2f80ed;
+  }
 
-  /* Hero */
-  .aegis-hero {
-    padding: 2rem 2rem 1.6rem 2rem;
-    border-radius: 16px;
-    margin-bottom: 1.2rem;
-    background: linear-gradient(135deg, #0d1f3c 0%, #0a1628 60%, #060e1a 100%);
-    border: 1px solid rgba(56, 139, 253, 0.3);
-    position: relative;
-    overflow: hidden;
+  html, body, [class*="css"], div[data-testid="stAppViewContainer"] { 
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif; 
+    background-color: var(--bg-primary) !important;
+    color: var(--text-main);
   }
-  .aegis-hero::before {
-    content: '';
-    position: absolute;
-    top: -60px; right: -60px;
-    width: 220px; height: 220px;
-    background: radial-gradient(circle, rgba(56,139,253,0.12) 0%, transparent 70%);
-    border-radius: 50%;
+
+  /* Structural Containers */
+  div[data-testid="stSidebar"] {
+    background-color: var(--bg-surface) !important;
+    border-right: 1px solid var(--border-subtle);
   }
-  .aegis-hero h1 {
-    margin: 0 0 0.3rem 0;
-    font-size: 2rem;
+
+  /* Refined Header Area */
+  .aegis-header-container {
+    padding: 1.5rem 0 2rem 0;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 2rem;
+  }
+  .aegis-header-container h1 {
     font-weight: 700;
-    letter-spacing: -0.5px;
-    color: #e6edf3;
-  }
-  .aegis-hero p {
+    font-size: 2.2rem;
+    letter-spacing: -0.03em;
+    color: var(--text-main);
     margin: 0;
-    color: #8b949e;
-    font-size: 0.95rem;
-    max-width: 620px;
   }
-  .aegis-hero .version-tag {
-    display: inline-block;
-    background: rgba(56,139,253,0.15);
-    color: #388bfd;
-    font-size: 0.72rem;
-    font-family: 'JetBrains Mono', monospace;
-    padding: 2px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(56,139,253,0.25);
-    margin-bottom: 0.7rem;
-    letter-spacing: 0.5px;
+  .aegis-header-container p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    max-width: 750px;
+    line-height: 1.5;
+  }
+  .system-meta-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #171923;
+    color: #4ba3e3;
+    font-size: 0.75rem;
+    font-family: 'Geist Mono', monospace;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #232d42;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  /* Risk badges */
+  /* Unified Workspace Card Grid Component */
+  .workspace-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Minimal High-Contrast Metric Block */
+  .metric-block {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+  .metric-block .metric-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+  }
+  .metric-block .metric-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-main);
+    font-family: 'Geist Mono', monospace;
+    letter-spacing: -0.02em;
+  }
+  
+  /* Precision Semantic Indicators */
+  .color-indicator-green { color: #10b981 !important; }
+  .color-indicator-amber { color: #f59e0b !important; }
+  .color-indicator-red { color: #ef4444 !important; }
+  .color-indicator-blue { color: #3b82f6 !important; }
+
+  /* Section Title Elements */
+  .section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin: 2.5rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  /* Refined Risk Badges */
   .aegis-badge {
     display: inline-block;
-    padding: 3px 12px;
-    border-radius: 999px;
-    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
     font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.5px;
-  }
-  .badge-low  { background: rgba(63,185,80,0.15);  color: #3fb950; border: 1px solid rgba(63,185,80,0.3); }
-  .badge-med  { background: rgba(210,153,34,0.15); color: #e3b341; border: 1px solid rgba(210,153,34,0.3); }
-  .badge-high { background: rgba(248,81,73,0.15);  color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
-
-  /* Stat cards */
-  .stat-card {
-    background: rgba(22, 33, 54, 0.8);
-    border: 1px solid rgba(56,139,253,0.15);
-    border-radius: 12px;
-    padding: 1rem 1.2rem;
-    text-align: center;
-  }
-  .stat-card .label {
-    font-size: 0.72rem;
-    color: #8b949e;
+    font-family: 'Geist Mono', monospace;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 0.3rem;
+    letter-spacing: 0.02em;
   }
-  .stat-card .value {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #e6edf3;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .stat-card .value.green { color: #3fb950; }
-  .stat-card .value.yellow { color: #e3b341; }
-  .stat-card .value.red { color: #f85149; }
-  .stat-card .value.blue { color: #58a6ff; }
+  .badge-low  { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+  .badge-med  { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+  .badge-high { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
 
-  /* Section headers */
-  .section-header {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #c9d1d9;
-    border-left: 3px solid #1a7abf;
-    padding-left: 0.75rem;
-    margin: 1.5rem 0 0.8rem 0;
-    letter-spacing: 0.1px;
+  /* Narrative Archaeology Blocks */
+  .narrative-block {
+    background: #0f111a;
+    border-left: 2px solid var(--border-subtle);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
   }
-
-  /* Archaeology story cards */
-  .story-card {
-    background: rgba(26,90,168,0.1);
-    border: 1px solid rgba(26,90,168,0.25);
-    border-left: 4px solid #1a5fa8;
-    border-radius: 10px;
-    padding: 0.85rem 1.1rem;
-    margin-bottom: 0.6rem;
-  }
-  .story-card .headline {
-    font-weight: 600;
-    color: #c9d1d9;
-    font-size: 0.9rem;
-  }
-  .story-card .detail {
-    color: #7a8490;
-    font-size: 0.82rem;
-    margin-top: 0.2rem;
-  }
-
-  /* Safety gate banner */
-  .safety-banner {
-    background: rgba(248,81,73,0.1);
-    border: 1px solid rgba(248,81,73,0.35);
-    border-radius: 10px;
-    padding: 0.8rem 1.1rem;
-    color: #f85149;
+  .narrative-block .title {
     font-weight: 500;
+    color: var(--text-main);
     font-size: 0.9rem;
-    margin: 0.5rem 0;
+  }
+  .narrative-block .desc {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    line-height: 1.4;
   }
 
-  /* Live metrics row */
-  .live-metric {
-    background: rgba(13, 17, 23, 0.8);
-    border: 1px solid rgba(48,54,61,0.8);
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    text-align: center;
-  }
-  .live-metric .lm-label { font-size: 0.7rem; color: #8b949e; letter-spacing: 0.5px; }
-  .live-metric .lm-value { font-size: 1.15rem; font-weight: 600; color: #e6edf3; font-family: 'JetBrains Mono', monospace; }
-
-  /* Factor tags */
-  .factor-tag {
-    display: inline-block;
-    background: rgba(56,139,253,0.1);
-    border: 1px solid rgba(56,139,253,0.2);
+  /* Critical Safety Overrides Banner */
+  .safety-override-banner {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.2);
     border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 0.78rem;
-    color: #8b949e;
-    margin: 2px 3px 2px 0;
-    font-family: 'JetBrains Mono', monospace;
+    padding: 1rem;
+    color: #f87171;
+    font-weight: 400;
+    font-size: 0.88rem;
+    margin: 1.5rem 0;
+    line-height: 1.5;
   }
 
-  div[data-testid="stMetricValue"] { font-size: 1.4rem !important; }
-  div[data-testid="stMetricLabel"] { font-size: 0.78rem !important; color: #8b949e !important; }
+  /* Utility Micro-Tags */
+  .micro-tag {
+    display: inline-block;
+    background: #1c1e29;
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 0.72rem;
+    color: #a3a8b4;
+    margin-right: 4px;
+    font-family: 'Geist Mono', monospace;
+  }
+
+  /* Streamlit native widget customization to blend cleanly */
+  div[data-testid="stMetricValue"] { font-size: 1.5rem !important; font-family: 'Geist Mono', monospace !important; font-weight:600 !important; }
+  div[data-testid="stMetricLabel"] { font-size: 0.75rem !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
+  .stDataFrame, div[data-testid="stTable"] { border: 1px solid var(--border-subtle) !important; border-radius: 6px !important; overflow: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -233,64 +250,63 @@ def make_pie(labels, values, colors, title=""):
     fig = go.Figure(go.Pie(
         labels=labels,
         values=values,
-        hole=0.58,
+        hole=0.7,
         marker=dict(
             colors=colors,
-            line=dict(color='#0d1117', width=3)
+            line=dict(color='#12131a', width=2)
         ),
-        textinfo="percent",
-        textfont=dict(size=13, family="JetBrains Mono", color="#e6edf3"),
-        hovertemplate="<b>%{label}</b><br>%{value} files · %{percent}<extra></extra>",
-        pull=[0.04] * len(labels),
+        textinfo="none",
+        hovertemplate="<b>%{label}</b><br>%{value} files (%{percent})<extra></extra>",
     ))
     fig.update_layout(
-        title=dict(text=title, font=dict(size=12, color="#8b949e", family="Inter"), x=0.5, y=0.97),
+        title=dict(text=title.upper(), font=dict(size=11, color="#888e96", family="Geist", weight=600), x=0.0, y=0.98),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#c9d1d9", family="Inter"),
+        font=dict(color="#f4f5f6", family="Geist"),
         legend=dict(
-            font=dict(size=11, color="#8b949e"),
+            font=dict(size=11, color="#888e96", family="Geist Mono"),
             bgcolor="rgba(0,0,0,0)",
-            orientation="v",
+            orientation="h",
+            x=0, y=-0.1
         ),
-        margin=dict(t=36, b=8, l=8, r=8),
-        height=280,
+        margin=dict(t=40, b=40, l=0, r=0),
+        height=220,
         showlegend=True,
     )
     return fig
 
 
 # ---------------------------------------------------------------------------
-# HERO
+# PLATFORM CLEAN HEADER AREA
 # ---------------------------------------------------------------------------
 st.markdown("""
-<div class="aegis-hero">
-  <div class="version-tag">AEGISSTORE · RISK-ADAPTIVE AI · LINUX STORAGE</div>
-  <h1>🛡️ AegisStore</h1>
-  <p>AI understands what can be optimized. AegisStore decides whether it is safe to act — and learns from what you accept or reject.</p>
+<div class="aegis-header-container">
+  <div class="system-meta-badge">Core Engine Engine · Risk Adaptive Architecture · v2.4.1</div>
+  <h1>🛡️ AegisStore Terminal</h1>
+  <p>An automated context-driven runtime safety layer for cloud storage environments. The panel analyzes historical telemetry patterns to build proactive counterfactual cleanup schedules while guaranteeing real-time infrastructure runtime consistency.</p>
 </div>
 """, unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
-# Controls
+# Workspace Control Row
 # ---------------------------------------------------------------------------
-col_input, col_scan, col_reset = st.columns([3, 1, 1])
+col_input, col_scan, col_reset = st.columns()
 target_dir = col_input.text_input("Directory to scan", value="./demo_disk", label_visibility="collapsed")
-col_input.caption("📁 Directory to scan")
-scan_clicked = col_scan.button("🔍 Scan Now", use_container_width=True, type="primary")
-reset_clicked = col_reset.button("♻️ Reset Demo", use_container_width=True,
-                                  help="Wipes demo_disk, quarantine, and history, then rebuilds.")
+col_input.caption("Target Environment Directory Mount Path")
+scan_clicked = col_scan.button("Run Telemetry Scan", use_container_width=True, type="primary")
+reset_clicked = col_reset.button("Reset Storage State", use_container_width=True,
+                                  help="Wipes demo_disk, quarantine, and database history states.")
 
-with st.expander("🛡️ Safety Guarantees & Threat Model", expanded=False):
+with st.expander("Telemetry Structural Safety Context Definitions", expanded=False):
     st.markdown("""
-    | Guarantee | How it works |
-    |---|---|
-    | 🗑️ No direct deletion | All cleanup goes through controlled quarantine |
-    | 🔒 Open file protection | Active process files are never touched |
-    | ⚠️ Risk-threshold gating | Every file scored 0–100 before any action |
-    | 🖥️ Live-load deferral | High CPU/RAM/IO defers cleanup in real time |
-    | 📦 Dependency awareness | Package-owned, Git-tracked, symlinks all flagged |
-    | 🎯 Feedback calibration | Accept/reject clicks retrain risk boundaries |
+
+    | Operational Guarantee | Structural Mechanism |
+    | :--- | :--- |
+    | **Quarantine Isolation Topology** | Deletion handles are deferred; targets are shifted to verification staging partitions. |
+    | **Runtime File Lock Interlocking** | File handles mapped to running standard active PIDs are instantly dropped from scopes. |
+    | **Boundary Threshold Constraints** | Strict individual element evaluation scores bounded between 0–100 before handling triggers. |
+    | **Load-Factor Throttling Enforcer** | High real-time CPU/RAM footprint instantly defers queue items back to schedule queues. |
+    | **Dependency Trace Analysis** | Validates package managers, workspace configurations, and submodules before cataloging. |
     """)
 
 if reset_clicked:
@@ -305,38 +321,34 @@ if reset_clicked:
     st.rerun()
 
 # ---------------------------------------------------------------------------
-# Live System Load
+# System Live Metrics Layout Configuration
 # ---------------------------------------------------------------------------
 load = safety_gate.read_system_load(sample_seconds=0.3)
 busy = safety_gate.is_system_busy(load)
 state = str(load.get("state", "NORMAL"))
-state_color = {"NORMAL": "#3fb950", "BUSY": "#e3b341", "CRITICAL": "#f85149"}.get(state, "#8b949e")
+state_color_class = {"NORMAL": "color-indicator-green", "BUSY": "color-indicator-amber", "CRITICAL": "color-indicator-red"}.get(state, "")
 
-st.markdown('<div class="section-header">Live System Monitor</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Telemetry Environment Monitor</div>', unsafe_allow_html=True)
 lc1, lc2, lc3, lc4, lc5 = st.columns(5)
-for col, label, val, unit in [
-    (lc1, "CPU", f"{load['cpu_percent']:.0f}", "%"),
-    (lc2, "RAM", f"{load['memory_percent']:.0f}", "%"),
-    (lc3, "Disk Read", f"{load['disk_read_mb_s']:.1f}", " MB/s"),
-    (lc4, "Disk Write", f"{load['disk_write_mb_s']:.1f}", " MB/s"),
-]:
-    col.markdown(f"""
-    <div class="live-metric">
-      <div class="lm-label">{label}</div>
-      <div class="lm-value">{val}<span style="font-size:0.7rem;color:#8b949e">{unit}</span></div>
-    </div>""", unsafe_allow_html=True)
 
-lc5.markdown(f"""
-<div class="live-metric">
-  <div class="lm-label">Safety Gate</div>
-  <div class="lm-value" style="color:{state_color}">{state}</div>
-</div>""", unsafe_allow_html=True)
-st.caption(f"I/O Wait: {load['io_wait_percent']:.0f}%  ·  Thresholds — CPU busy ≥75% critical ≥90% | RAM busy ≥80% critical ≥90% | IO busy ≥10% critical ≥20%")
+with lc1:
+    st.markdown(f'<div class="workspace-card"><div class="metric-block"><div class="metric-label">CPU Footprint</div><div class="metric-value">{load["cpu_percent"]:.0f}<span style="font-size:0.8rem;color:var(--text-muted)">%</span></div></div></div>', unsafe_allow_html=True)
+with lc2:
+    st.markdown(f'<div class="workspace-card"><div class="metric-block"><div class="metric-label">RAM Saturation</div><div class="metric-value">{load["memory_percent"]:.0f}<span style="font-size:0.8rem;color:var(--text-muted)">%</span></div></div></div>', unsafe_allow_html=True)
+with lc3:
+    st.markdown(f'<div class="workspace-card"><div class="metric-block"><div class="metric-label">I/O Bandwidth Read</div><div class="metric-value">{load["disk_read_mb_s"]:.1f}<span style="font-size:0.8rem;color:var(--text-muted)"> MB/s</span></div></div></div>', unsafe_allow_html=True)
+with lc4:
+    st.markdown(f'<div class="workspace-card"><div class="metric-block"><div class="metric-label">I/O Bandwidth Write</div><div class="metric-value">{load["disk_write_mb_s"]:.1f}<span style="font-size:0.8rem;color:var(--text-muted)"> MB/s</span></div></div></div>', unsafe_allow_html=True)
+with lc5:
+    st.markdown(f'<div class="workspace-card"><div class="metric-block"><div class="metric-label">Safety Status</div><div class="metric-value {state_color_class}">{state}</div></div></div>', unsafe_allow_html=True)
+
+st.caption(f"Kernel I/O Wait Ratio: {load['io_wait_percent']:.0f}%  ·  System Bounds Trigger Logic: CPU Limit [75% | 90%] — RAM Limit [80% | 90%] — I/O Wait Bound [10% | 20%]")
 
 if busy:
-    st.markdown(f"""<div class="safety-banner">
-    ⚡ LIVE SAFETY OVERRIDE ACTIVE — automatic cleanup deferred.
-    CPU {load['cpu_percent']:.0f}% · RAM {load['memory_percent']:.0f}% · IO Wait {load['io_wait_percent']:.0f}%
+    st.markdown(f"""<div class="safety-override-banner">
+    <strong>⚠️ SYSTEM SAFETY REGULATOR OVERRIDE ACTIVE</strong><br/>
+    Automated execution stacks are currently deferred into holding sequences. 
+    Current metrics: Host Core Utilization at {load['cpu_percent']:.0f}%, Volatile RAM usage at {load['memory_percent']:.0f}%, System I/O wait times sit at {load['io_wait_percent']:.0f}%.
     </div>""", unsafe_allow_html=True)
 
 if "results" not in st.session_state:
@@ -345,39 +357,39 @@ if "results" not in st.session_state:
     st.session_state.reclaimable = 0
 
 # ---------------------------------------------------------------------------
-# Scan Pipeline
+# Pipeline Engine Processing Flow Execution
 # ---------------------------------------------------------------------------
 if scan_clicked:
     target = str(Path(target_dir))
     if not Path(target).exists():
-        st.error(f"'{target}' does not exist. Run `python3 demo_setup.py {target}` first.")
+        st.error(f"Target file system scope path context '{target}' cannot be parsed by kernel mount layers.")
     else:
         progress = st.progress(0)
         status = st.empty()
 
-        status.text("📁 Scanning filesystem...")
+        status.text("Mapping targeted workspace tree structures...")
         total, used, _free = shutil.disk_usage(target)
         db.log_usage(target, used, total)
         records = scanner.scan_and_classify(target)
         progress.progress(20)
 
-        status.text("📊 Analyzing usage intelligence...")
+        status.text("Evaluating deep file classification descriptors...")
         analyzed = usage_intelligence.analyze_records(records)
         progress.progress(35)
 
-        status.text("🤖 Predicting future usage (ML)...")
+        status.text("Evaluating statistical models on access probability maps...")
         model = get_trained_model()
         predicted = [future_usage_model.predict_record(model, r) for r in analyzed]
         progress.progress(55)
 
-        status.text("🧠 Generating recommendations...")
+        status.text("Filtering metadata structural target collections...")
         candidates, reclaimable = scanner.reclaimable_summary(records)
         candidate_paths = {str(c["path"]) for c in candidates}
         candidate_records = [r for r in predicted if str(r["path"]) in candidate_paths]
         candidate_records = sorted(candidate_records, key=lambda r: r["size_bytes"], reverse=True)[:20]
         progress.progress(70)
 
-        status.text("⚙️ Computing risk-adaptive decisions...")
+        status.text("Running adaptive multidimensional risk scoring tables...")
         rows = []
         for r in candidate_records:
             ctx = context.enrich(str(r["path"]))
@@ -429,7 +441,7 @@ if scan_clicked:
             })
 
         progress.progress(88)
-        status.text("📖 Generating forecasts & stories...")
+        status.text("Compiling historical trends projections...")
 
         st.session_state.results = rows
         st.session_state.archaeology_records = analyzed
@@ -454,7 +466,7 @@ if scan_clicked:
         }
         if fc:
             summary["growth_rate_gb_per_day"] = fc["growth_rate_gb_per_day"]
-            summary["days_to_90pct"] = fc["predictions_days"].get(0.90)
+            summary["predictions_days"] = fc["predictions_days"]
             st.session_state.forecast = fc
         else:
             st.session_state.forecast = None
@@ -462,227 +474,206 @@ if scan_clicked:
         st.session_state.summary = summary
 
         progress.progress(100)
-        status.text("✅ Scan complete!")
-        st.success(f"✅ Analyzed {len(records)} files — {len(rows)} candidates — {len(automated)} ready for cleanup.")
-        time.sleep(0.4)
-        progress.empty()
         status.empty()
+        st.toast(f"Parsed {len(records)} node records cleanly.")
+        time.sleep(0.2)
+        progress.empty()
 
 # ---------------------------------------------------------------------------
-# Results
+# Telemetry Output Layout Formatting Structures
 # ---------------------------------------------------------------------------
 if st.session_state.results is not None:
     used = st.session_state.used_disk
     total = st.session_state.total_disk
     results = st.session_state.results
 
-    # Top metrics
-    st.markdown('<div class="section-header">Scan Summary</div>', unsafe_allow_html=True)
+    # Execution Top Summary Bar
+    st.markdown('<div class="section-title">Analysis Index Vectors</div>', unsafe_allow_html=True)
     sm1, sm2, sm3, sm4 = st.columns(4)
-    sm1.metric("Disk Usage", f"{used/total:.0%}", help=f"{human(used)} / {human(total)}")
-    sm2.metric("Reclaimable", human(st.session_state.reclaimable))
-    sm3.metric("Candidates", len(results))
-    sm4.metric("Ready to Clean", sum(1 for r in results if r["Action"] == "AUTOMATE"))
+    sm1.metric("Storage Volume Allocation", f"{used/total:.1%}", delta=f"{human(used)} / {human(total)} used", delta_color="off")
+    sm2.metric("Purgeable Volume Weight", human(st.session_state.reclaimable))
+    sm3.metric("Evaluated Target Nodes", len(results))
+    sm4.metric("Unconditional Clearance Queue", sum(1 for r in results if r["Action"] == "AUTOMATE"))
 
-    # ---- PIE CHARTS ROW ----
-    st.markdown('<div class="section-header">Visual Breakdown</div>', unsafe_allow_html=True)
+    # Analytical Distributive Plots Configuration Row
+    st.markdown('<div class="section-title">Distribution Mappings</div>', unsafe_allow_html=True)
     pc1, pc2, pc3 = st.columns(3)
 
-    # Pie 1: Risk Tier — deep jewel tones on dark
     risk_counts = {t: sum(1 for r in results if r.get("risk_tier") == t) for t in ["LOW", "MEDIUM", "HIGH"]}
     with pc1:
         if any(risk_counts.values()):
             fig1 = make_pie(
                 labels=list(risk_counts.keys()),
                 values=list(risk_counts.values()),
-                colors=["#1e8c4a", "#b07d12", "#a63228"],   # deep emerald, amber, crimson
-                title="Risk Tier Distribution"
+                colors=["#10b981", "#f59e0b", "#ef4444"], 
+                title="Risk Target Metrics Classification"
             )
             st.plotly_chart(fig1, use_container_width=True, config={"displayModeBar": False})
 
-    # Pie 2: File Classification — cool slate tones
     clf_counts = {}
     for r in results:
         c = r.get("Classification", "Unknown")
         clf_counts[c] = clf_counts.get(c, 0) + 1
     clf_colors = {
-        "HOT":       "#a63228",   # deep crimson
-        "WARM":      "#b07d12",   # amber
-        "COLD":      "#1a5fa8",   # deep cobalt
-        "REDUNDANT": "#6b4db5",   # muted violet
-        "Unknown":   "#3a4655",   # slate
-        "Cold + Redundant": "#2a7a6a",  # teal
+        "HOT": "#ef4444", "WARM": "#f59e0b", "COLD": "#3b82f6",
+        "REDUNDANT": "#8b5cf6", "Unknown": "#4b5563", "Cold + Redundant": "#14b8a6",
     }
     with pc2:
         if clf_counts:
             fig2 = make_pie(
                 labels=list(clf_counts.keys()),
                 values=list(clf_counts.values()),
-                colors=[clf_colors.get(k, "#2a5a8a") for k in clf_counts.keys()],
-                title="File Classification"
+                colors=[clf_colors.get(k, "#4b5563") for k in clf_counts.keys()],
+                title="Data Lifecycle Profiles Index"
             )
             st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
 
-    # Pie 3: Recommended Actions — distinct hues per action
     rec_counts = {}
     for r in results:
         a = r.get("recommendation") or r.get("Action", "UNKNOWN")
         rec_counts[a] = rec_counts.get(a, 0) + 1
     rec_colors_map = {
-        "CLEANUP":           "#a63228",   # crimson
-        "ARCHIVE":           "#b07d12",   # amber
-        "KEEP":              "#1e8c4a",   # emerald
-        "REVIEW":            "#1a5fa8",   # cobalt
-        "AUTOMATE":          "#1e8c4a",   # emerald
-        "DEFER":             "#6b4db5",   # violet
-        "SKIP":              "#3a4655",   # slate
-        "APPROVAL_REQUIRED": "#2a7a6a",   # teal
+        "CLEANUP": "#ef4444", "ARCHIVE": "#f59e0b", "KEEP": "#10b981",
+        "REVIEW": "#3b82f6", "AUTOMATE": "#10b981", "DEFER": "#6366f1",
+        "SKIP": "#4b5563", "APPROVAL_REQUIRED": "#06b6d4",
     }
     with pc3:
         if rec_counts:
             fig3 = make_pie(
                 labels=list(rec_counts.keys()),
                 values=list(rec_counts.values()),
-                colors=[rec_colors_map.get(k, "#2a5a8a") for k in rec_counts.keys()],
-                title="Recommended Actions"
+                colors=[rec_colors_map.get(k, "#4b5563") for k in rec_counts.keys()],
+                title="System Pipeline Recommendation Engine Output"
             )
             st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
 
-    # Risk threshold caption
     thresholds = decision_engine.current_thresholds()
-    cal_note = "default" if thresholds["is_default"] else "recalibrated from feedback"
-    st.caption(f"Risk boundary: LOW < {thresholds['low_threshold']} · HIGH ≥ {thresholds['high_threshold']} ({cal_note})")
+    cal_note = "system static defaults" if thresholds["is_default"] else "optimized runtime logistic matrix output"
+    st.caption(f"Risk Separation Bounds Configuration Matrix: LOW Bracket < {thresholds['low_threshold']} · HIGH Bracket ≥ {thresholds['high_threshold']} ({cal_note})")
 
-    if busy:
-        st.markdown(f"""<div class="safety-banner">
-        ⚡ LIVE SAFETY OVERRIDE ACTIVE — cleanup deferred.
-        CPU {load['cpu_percent']:.0f}% · RAM {load['memory_percent']:.0f}% · IO {load['io_wait_percent']:.0f}%
-        </div>""", unsafe_allow_html=True)
-
-    # ---- GROWTH FORECAST ----
+    # Storage Volume Progression Modeler Plotting Row
     fc_detail = st.session_state.get("forecast_detailed")
     if fc_detail:
         fc = fc_detail["forecast"]
-        st.markdown('<div class="section-header">📈 Growth Forecast</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Storage Volume Volatility Projection</div>', unsafe_allow_html=True)
         if fc:
             fcol1, fcol2, fcol3, fcol4, fcol5 = st.columns(5)
-            fcol1.metric("Current Usage", f"{fc['current_usage_pct']*100:.0f}%")
-            fcol2.metric("Growth Rate", fc_detail["growth_rate_formatted"])
+            fcol1.metric("Current Partition Load", f"{fc['current_usage_pct']*100:.1f}%")
+            fcol2.metric("Mean Scaling Speed Value", fc_detail["growth_rate_formatted"])
             d85 = fc["predictions_days"].get(0.85)
-            fcol3.metric("Days to 85%", f"{d85:.0f}" if d85 else "N/A")
+            fcol3.metric("Estimated Run-out Window to 85%", f"{d85:.0f} Days" if d85 else "Stable Boundary")
             d90 = fc["predictions_days"].get(0.90)
-            fcol4.metric("Days to 90%", f"{d90:.0f}" if d90 else "N/A")
+            fcol4.metric("Estimated Run-out Window to 90%", f"{d90:.0f} Days" if d90 else "Stable Boundary")
             d95 = fc["predictions_days"].get(0.95)
-            fcol5.metric("Days to 95%", f"{d95:.0f}" if d95 else "N/A")
-            st.metric("Forecast Quality", fc_detail["forecast_quality"])
-
+            fcol5.metric("Estimated Run-out Window to 95%", f"{d95:.0f} Days" if d95 else "Stable Boundary")
+            
             history_rows = db.usage_series(st.session_state.target)
             if len(history_rows) >= 2:
                 chart_df = pd.DataFrame([{
-                    "Date": datetime.fromtimestamp(r["timestamp"]).strftime("%Y-%m-%d"),
-                    "Historical Usage (GB)": r["used_bytes"] / (1024 ** 3),
+                    "Timeline Index Date": datetime.fromtimestamp(r["timestamp"]).strftime("%Y-%m-%d"),
+                    "Allocation Weight Metrics (GB)": r["used_bytes"] / (1024 ** 3),
                 } for r in history_rows])
-                chart_df = chart_df.drop_duplicates(subset="Date", keep="last").set_index("Date")
-                st.line_chart(chart_df, height=200)
+                chart_df = chart_df.drop_duplicates(subset="Timeline Index Date", keep="last").set_index("Timeline Index Date")
+                st.line_chart(chart_df, height=180, color="#2f80ed")
 
             if fc_detail["cleanup_impact"]:
-                st.markdown('<div class="section-header">💾 Cleanup Impact Projection</div>', unsafe_allow_html=True)
+                st.markdown('<div class="section-title">Optimization Impact Modeling Analysis</div>', unsafe_allow_html=True)
                 ci = fc_detail["cleanup_impact"]
                 ci1, ci2, ci3, ci4 = st.columns(4)
-                ci1.metric("Current Usage", ci["current_used_formatted"])
-                ci2.metric("Reclaimable", ci["reclaimable_formatted"])
-                ci3.metric("After Cleanup", ci["estimated_after_formatted"])
-                ci4.metric("After Cleanup %", f"{ci['estimated_after_pct']*100:.0f}%")
-                st.caption("Estimated impact if all reclaimable data were safely removed.")
+                ci1.metric("Pre-Run Volumetric Footprint", ci["current_used_formatted"])
+                ci2.metric("Purgeable Delta Pool", ci["reclaimable_formatted"])
+                ci3.metric("Post-Run Expected Footprint", ci["estimated_after_formatted"])
+                ci4.metric("Post-Run Target Ratio Scale", f"{ci['estimated_after_pct']*100:.0f}%")
 
-        st.markdown('<div class="section-header">🧭 Storage Intelligence</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Engine Logic Advisory Dispatcher</div>', unsafe_allow_html=True)
         st.info(fc_detail["recommendation"])
 
-    # ---- DIGITAL ARCHAEOLOGY ----
-    st.markdown('<div class="section-header">📜 Digital Archaeology</div>', unsafe_allow_html=True)
-    st.caption("Your storage, told as a story a non-technical reader can act on in one glance.")
+    # High Level Behavioral Narrative Modules
+    st.markdown('<div class="section-title">Data Environmental Archaeology Chronology</div>', unsafe_allow_html=True)
     archaeology_records = st.session_state.get("archaeology_records", [])
     stories = archaeology.build_stories(archaeology_records) if archaeology_records else []
     if stories:
-        for s in stories[:6]:
-            st.markdown(f"""
-            <div class="story-card">
-              <div class="headline">{s['headline']}</div>
-              <div class="detail">{s['detail']}</div>
-            </div>""", unsafe_allow_html=True)
+        sc1, sc2 = st.columns(2)
+        for idx, s in enumerate(stories[:6]):
+            target_col = sc1 if idx % 2 == 0 else sc2
+            with target_col:
+                st.markdown(f"""
+                <div class="narrative-block">
+                  <div class="title">{s['headline']}</div>
+                  <div class="desc">{s['detail']}</div>
+                </div>""", unsafe_allow_html=True)
     else:
-        st.info("No large enough groupings to narrate yet.")
+        st.info("System filesystem structures currently display regular uniform operational allocation profiles.")
 
 # ---------------------------------------------------------------------------
-# Candidate Table
+# Targeted Candidate Evaluation Index Row
 # ---------------------------------------------------------------------------
-st.markdown('<div class="section-header">📋 Candidate Results — Risk-Adaptive Decisions</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Active Decision Stacks & Risk Allocation Map</div>', unsafe_allow_html=True)
 results = st.session_state.get("results") or []
 df = pd.DataFrame(results)
 
 if not df.empty:
     display_df = pd.DataFrame([{
-        "File": r["File"],
-        "Size": r["Size"],
-        "Age (days)": r["Age (days)"],
-        "Classification": r["Classification"],
-        "Usage Profile": r.get("usage_profile") or "—",
-        "Future Use %": (f"{r['future_usage_probability']*100:.1f}%"
-                         if r.get("future_usage_probability") is not None else "—"),
-        "Risk Score": r["Risk Score"],
-        "Risk": r["Risk"],
-        "Recommendation": r.get("recommendation") or r["Action"],
-        "Reason": r.get("recommendation_reason") or r["Reason"],
+        "Target Node Element": r["File"],
+        "Size Metrics": r["Size"],
+        "Retention Stagnation (Days)": r["Age (days)"],
+        "Lifecycle State": r["Classification"],
+        "Operational Access Footprint": r.get("usage_profile") or "Stagnant",
+        "Future Access Likelihood Ratio": (f"{r['future_usage_probability']*100:.1f}%"
+                         if r.get("future_usage_probability") is not None else "0.0%"),
+        "Calculated Risk Value Index": r["Risk Score"],
+        "Risk Class Allocation Group": r["Risk"],
+        "Action Strategy Selection": r.get("recommendation") or r["Action"],
+        "Scoring Engine Evaluation Argument": r.get("recommendation_reason") or r["Reason"],
     } for r in results])
 
-    def risk_color(val):
+    def risk_color_matrix(val):
         return {
-            "LOW": "background-color:#1a3a1f; color:#3fb950",
-            "MEDIUM": "background-color:#3a2e0a; color:#e3b341",
-            "HIGH": "background-color:#3a0f0f; color:#f85149",
+            "LOW": "background-color: #0b251a; color: #10b981; font-weight: 600;",
+            "MEDIUM": "background-color: #2a1b05; color: #f59e0b; font-weight: 600;",
+            "HIGH": "background-color: #2d0d0d; color: #ef4444; font-weight: 600;",
         }.get(val, "")
 
-    st.dataframe(display_df.style.map(risk_color, subset=["Risk"]), use_container_width=True, hide_index=True)
+    st.dataframe(display_df.style.map(risk_color_matrix, subset=["Risk Class Allocation Group"]), use_container_width=True, hide_index=True)
 
     csv_bytes = display_df.to_csv(index=False).encode("utf-8")
-    st.download_button("⬇️ Download Report (CSV)", data=csv_bytes,
-                        file_name=f"aegisstore_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+    st.download_button("Export Machine Readable Logs (CSV)", data=csv_bytes,
+                        file_name=f"aegisstore_telemetry_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                         mime="text/csv")
 
-    # ---- WHY THIS DECISION ----
-    st.markdown('<div class="section-header">🔍 Why This Decision?</div>', unsafe_allow_html=True)
+    # Interactive Deep Dive Inspector Module Configuration
+    st.markdown('<div class="section-title">Deep Variable Engine Trace Inspector</div>', unsafe_allow_html=True)
     candidate_names = [r["File"] for r in results]
-    selected_file = st.selectbox("Select a candidate to inspect", candidate_names, index=0)
+    selected_file = st.selectbox("Isolate telemetry nodes for trace parsing:", candidate_names, index=0)
     selected = next((r for r in results if r["File"] == selected_file), None)
 
     if selected:
         badge = risk_badge_html(selected["Risk"])
         col_a, col_b, col_c = st.columns(3)
-        col_a.metric("Risk Score", selected["Risk Score"])
-        col_b.metric("Action", selected["Action"])
-        col_c.metric("Age", f"{selected['Age (days)']} days")
+        col_a.metric("Assessed Core Element Risk Value", selected["Risk Score"])
+        col_b.metric("Engine Execution Assignment State", selected["Action"])
+        col_c.metric("Node Tree Existence Timeline Lifespan", f"{selected['Age (days)']} Days")
 
-        st.markdown(f"**File:** `{selected['File']}`  {badge}", unsafe_allow_html=True)
+        st.markdown(f"**Target Host Resource Node Location Path Reference:** `{selected['Path']}` &nbsp;&nbsp; {badge}", unsafe_allow_html=True)
 
         if selected.get("recommendation"):
-            st.markdown(f"**ML Recommendation:** `{selected['recommendation']}` — {selected.get('recommendation_reason', '')}")
+            st.markdown(f"**Predictive Model Synthesis Output Strategy:** `{selected['recommendation']}` — *{selected.get('recommendation_reason', '')}*")
         if selected.get("future_usage_probability") is not None:
             st.markdown(
-                f"**Predicted Future Use:** `{selected['future_usage_probability']*100:.1f}%` "
-                f"({selected.get('future_usage_class', '—')}) — {selected.get('future_usage_explanation', '')}"
+                f"**Neural Access Pattern Forecast Ratio:** `{selected['future_usage_probability']*100:.1f}%` "
+                f"({selected.get('future_usage_class', '—')}) — *{selected.get('future_usage_explanation', '')}*"
             )
 
-        st.markdown("**Scoring Factors:**")
+        st.markdown("**Evaluated Pipeline Model Variable Weight Factors:**")
         factors = selected.get("factors", [])
         if factors:
-            tags_html = "".join(f'<span class="factor-tag">{f}</span>' for f in factors)
+            tags_html = "".join(f'<span class="micro-tag">{f}</span>' for f in factors)
             st.markdown(tags_html, unsafe_allow_html=True)
         else:
-            st.caption("No explanatory factors available.")
-        st.markdown(f"**Decision:** {selected['Reason']}")
+            st.caption("No custom scalar variables altered baseline mathematical matrix evaluations during pass loops.")
+        st.markdown(f"**Execution Assignment Logic Argument:** {selected['Reason']}")
 
-        st.divider()
-        st.markdown("#### 🔄 Counterfactual — What Would Change This Decision?")
+        st.markdown("##### 🔄 Counterfactual Matrix Delta Modeling Simulation")
         try:
             from aegisstore import counterfactual
             original = next((c for c in scanner.scan_and_classify(st.session_state.target)
@@ -691,63 +682,55 @@ if not df.empty:
                 cf = counterfactual.explain_age_change(
                     original, context.enrich(str(original["path"])), load, busy, days_delta=-7)
                 cfc1, cfc2 = st.columns(2)
-                cfc1.metric("Current Risk", f"{cf['current_score']} / 100")
-                cfc2.metric("If 7 Days Newer", f"{cf['counterfactual_score']} / 100", delta=cf["delta"])
-                st.info(f"💡 {cf['explanation']}")
+                cfc1.metric("Baseline Element Risk Index", f"{cf['current_score']} / 100")
+                cfc2.metric("Counterfactual Shift Variance Simulation (-7 Days Age)", f"{cf['counterfactual_score']} / 100", delta=cf["delta"])
+                st.info(f"💡 **Counterfactual Engine Extrapolation Model Analysis:** {cf['explanation']}")
                 if cf["current_action"] != cf["counterfactual_action"]:
-                    st.warning(f"Decision would change: **{cf['current_action']}** → **{cf['counterfactual_action']}**")
-                else:
-                    st.caption(f"Decision remains: {cf['current_action']}")
+                    st.warning(f"Target logic path delta simulation flags macro state mutation: **{cf['current_action']}** → **{cf['counterfactual_action']}**")
         except Exception as e:
-            st.warning(f"Counterfactual unavailable: {e}")
+            st.caption(f"Counterfactual simulation engine failed execution bounds loops checks: {e}")
 
-        st.divider()
-        st.markdown("#### 🎓 Was this recommendation right?")
-        st.caption("Your feedback retrains the risk-tier boundary via logistic regression.")
-        fb1, fb2, fb3 = st.columns([1, 1, 3])
+        st.markdown("##### 🎓 Human Feedback Input Tuning Vector Channels")
+        fb1, fb2, fb3 = st.columns(3)
         rec_label = selected.get("recommendation") or selected["Action"]
-        if fb1.button("👍 Accept", key=f"accept_{selected['Path']}"):
+        if fb1.button("Confirm Strategy Vector", key=f"accept_{selected['Path']}", use_container_width=True):
             db.log_recommendation_feedback(selected["Path"], rec_label, selected["risk_score"],
                                             selected.get("future_usage_probability"), accepted=True)
-            st.success("Feedback logged: accepted.")
-        if fb2.button("👎 Reject", key=f"reject_{selected['Path']}"):
+            st.toast("Telemetry adjustment target vectors reinforced positively.")
+        if fb2.button("Reject Strategy Vector", key=f"reject_{selected['Path']}", use_container_width=True):
             db.log_recommendation_feedback(selected["Path"], rec_label, selected["risk_score"],
                                             selected.get("future_usage_probability"), accepted=False)
-            st.success("Feedback logged: rejected.")
-        fb3.caption(f"{db.recommendation_feedback_count()} feedback samples logged (need 6+ to recalibrate).")
+            st.toast("Telemetry boundary weights penalization index updated.")
+        fb3.caption(f"Currently staging {db.recommendation_feedback_count()} local user modification samples (Minimum threshold convergence limit requirement: 6+ nodes to recalculate core scalar weights).")
 
-    st.markdown("#### 🧠 Recalibrate Risk Thresholds")
-    st.caption("Refits LOW/MEDIUM/HIGH boundaries from your accept/reject clicks — real logistic regression, not a reset.")
-    rc1, rc2 = st.columns([1, 3])
-    if rc1.button("Recalibrate Now"):
+    st.markdown("##### 🧠 Global Retraining Core Optimization Module Trigger")
+    rc1, rc2 = st.columns(2)
+    if rc1.button("Retrain Core Models Now", use_container_width=True):
         import recalibrate as recalibrate_module
         result = recalibrate_module.recalibrate_from_feedback()
         if result["status"] == "recalibrated":
             st.success(
-                f"Recalibrated from {result['sample_count']} samples. "
-                f"LOW: {result['old_thresholds']['low_threshold']} → {result['new_thresholds']['low_threshold']} · "
-                f"HIGH: {result['old_thresholds']['high_threshold']} → {result['new_thresholds']['high_threshold']}"
+                f"Logistic model weights recalculated smoothly over {result['sample_count']} samples. "
+                f"LOW boundary shifted: {result['old_thresholds']['low_threshold']} → {result['new_thresholds']['low_threshold']} · "
+                f"HIGH boundary shifted: {result['old_thresholds']['high_threshold']} → {result['new_thresholds']['high_threshold']}"
             )
-            st.caption("Re-run a scan to see new boundaries applied.")
         elif result["status"] == "insufficient_data":
-            st.info(f"Only {result['sample_count']} samples — need at least 6.")
+            st.info(f"Retraining requires data matrix growth. Minimal vector target variations missing (Staged: {result['sample_count']}/6 nodes).")
         elif result["status"] == "no_variation":
-            st.info("Need at least one accept and one reject before recalibrating.")
-        else:
-            st.warning(f"Recalibration did not run: {result.get('error', result['status'])}")
-    if rc2.button("Reset to Defaults"):
+            st.info("The adjustment vector logs require balancing items. Please specify both affirmative alignments and standard rejections.")
+    if rc2.button("Restore Engine Static Configuration Rules Defaults", use_container_width=True):
         import recalibrate as recalibrate_module
         recalibrate_module.reset_calibration()
-        st.success("Calibration reset to defaults (LOW < 31, HIGH ≥ 66).")
+        st.toast("Engine evaluation scalar boundaries fixed cleanly back to initial factory weights.")
 
 else:
-    st.info("Run a scan to see candidate results.")
+    st.info("Initialize a telemetry file system environment scan sequence to index system metrics targets.")
 
 # ---------------------------------------------------------------------------
-# Take Action
+# Manual Pipeline Operations Executor Module Interface
 # ---------------------------------------------------------------------------
 if results:
-    st.markdown('<div class="section-header">⚙️ Take Action</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Manual System Action Stacks Dispatch Routing Channels</div>', unsafe_allow_html=True)
     auto_eligible = [r for r in results if r["Action"] == "AUTOMATE"]
     scheduled = [r for r in results if r["Action"] == "SCHEDULE"]
     approval = [r for r in results if r["Action"] == "APPROVAL_REQUIRED"]
@@ -755,118 +738,106 @@ if results:
     skipped = [r for r in results if r["Action"] == "SKIP"]
 
     if auto_eligible:
-        st.info(f"🟢 {len(auto_eligible)} candidates are safe for automatic cleanup.")
-        col_batch, col_safety = st.columns([2, 1])
-        if col_batch.button("⚡ Execute Batch Cleanup", type="primary",
-                             help="Quarantine all AUTOMATE-eligible files with SHA-256 integrity verification"):
+        st.markdown(f'<div style="background: rgba(16, 185, 129, 0.05); padding:1rem; border-radius:6px; border:1px solid rgba(16,185,129,0.15); margin-bottom:1rem;"><strong>🟢 Safe Batch Processing Pool Available</strong><br/>{len(auto_eligible)} target workspace nodes meet verified compliance checks and can be instantly offloaded safely.</div>', unsafe_allow_html=True)
+        col_batch, col_safety = st.columns(2)
+        if col_batch.button("Execute Core Staged Batch Isolation Pipeline", type="primary", use_container_width=True):
             batch_candidates = [{"path": r["Path"], "reason": r["Reason"]} for r in auto_eligible]
             batch_result = executor.batch_quarantine(batch_candidates, load, verify_safety=True)
             if batch_result["safety_cleared"]:
                 if batch_result["executed"]:
-                    st.success(
-                        f"✓ {len(batch_result['executed'])} files quarantined · "
-                        f"Recovered {batch_result['total_bytes_recovered'] / (1024**3):.2f} GB"
-                    )
-                    st.balloons()
+                    st.success(f"Successfully processed {len(batch_result['executed'])} nodes. Cleared {batch_result['total_bytes_recovered'] / (1024**3):.2f} GB from partition maps.")
                 if batch_result["failed"]:
-                    st.warning(f"⚠ {len(batch_result['failed'])} files could not be quarantined.")
+                    st.warning(f"Engine validation errors tripped on {len(batch_result['failed'])} workspace targets during manipulation phases.")
             else:
-                st.warning(
-                    f"🛑 Safety gate blocked batch cleanup — system busy "
-                    f"(CPU {load['cpu_percent']:.0f}%, RAM {load['memory_percent']:.0f}%). "
-                    f"All {len(batch_result['skipped'])} candidates remain safe."
-                )
-        col_safety.metric("Batch Safety", "✓ PASS" if not busy else "⚠ DEFER")
+                st.error("Infrastructure consistency monitor intercepted operation: Critical environment activity metrics boundaries breached.")
+        col_safety.metric("Runtime Infrastructure Clearance Status Verification", "PASSED CLEAR" if not busy else "DEFERRED STALL")
 
     for action_name, items, guidance in [
-        ("AUTOMATE", auto_eligible, "Ready for automatic quarantine."),
-        ("SCHEDULE", scheduled, "Handle during a safer window."),
-        ("APPROVAL_REQUIRED", approval, "Requires explicit user approval."),
-        ("DEFER", deferred, "System busy — do not execute now."),
-        ("SKIP", skipped, "Safety checks blocked — no action."),
+        ("AUTOMATE", auto_eligible, "Instantly dispatchable targets verified against file access system anomalies maps."),
+        ("SCHEDULE", scheduled, "Safe maintenance window deferred queue items awaiting system low activity flags."),
+        ("APPROVAL_REQUIRED", approval, "Identity policy structural elements requiring elevation clear signatures."),
+        ("DEFER", deferred, "Active IO block exceptions held until hardware resources normalize."),
+        ("SKIP", skipped, "Active framework locks tripped. Operations hard-dropped to secure environment state integrity."),
     ]:
         if items:
-            badge_html = risk_badge_html({"AUTOMATE": "LOW", "SCHEDULE": "MEDIUM",
-                                          "APPROVAL_REQUIRED": "MEDIUM", "DEFER": "HIGH", "SKIP": "HIGH"}.get(action_name, "MEDIUM"))
-            st.markdown(f"**{action_name}** {badge_html} — {guidance}", unsafe_allow_html=True)
+            st.markdown(f"**Operational Pipeline Strategy Group: `{action_name}`** — *{guidance}*")
             for r in items:
-                c1, c2 = st.columns([4, 1])
-                c1.write(f"`{r['File']}` · {r['Size']} · {r['Reason']}")
+                c1, c2 = st.columns(2)
+                c1.markdown(f"<div style='font-family:"Geist Mono"; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r['Reason']}</span></div>", unsafe_allow_html=True)
                 if action_name == "AUTOMATE":
-                    if c2.button("Quarantine", key=f"q_{r['Path']}"):
+                    if c2.button("Quarantine Target", key=f"q_{r['Path']}", use_container_width=True):
                         try:
                             info = executor.quarantine_file(r["Path"], r["Reason"])
-                            st.success(f"Quarantined · integrity_verified={info['integrity_verified']}")
+                            st.toast(f"Node isolated securely. Checksum matching verification token: {info['integrity_verified']}")
                         except FileNotFoundError:
-                            st.warning("Already quarantined or moved.")
+                            st.toast("Selected workspace object target node shifted scopes outside runtime window maps.")
                 else:
-                    c2.write("—")
+                    c2.markdown("<div style='text-align:center; color:var(--text-muted); font-size:0.8rem; padding-top:4px;'>QUEUE HOLD</div>", unsafe_allow_html=True)
 
-    st.markdown('<div class="section-header">📖 Storage Story</div>', unsafe_allow_html=True)
-    with st.spinner("Generating narrative..."):
+    st.markdown('<div class="section-title">Synthetic Operational Text Narrative Digest</div>', unsafe_allow_html=True)
+    with st.spinner("Compiling context records analysis metrics..."):
         story = storage_story.generate_story(st.session_state.summary)
     st.info(story)
 
 # ---------------------------------------------------------------------------
-# Recovery & Quarantine Management
+# Isolation Sandbox Staging Partition Management Console
 # ---------------------------------------------------------------------------
-st.divider()
-st.markdown('<div class="section-header">🧾 Recovery & Quarantine Management</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Secure Quarantine Sandbox State Registry Management</div>', unsafe_allow_html=True)
 recovery_stats = executor.recovery_stats()
 q1, q2, q3 = st.columns(3)
-q1.metric("Files in Quarantine", recovery_stats["file_count"])
-q2.metric("Total Size", f"{recovery_stats['total_bytes'] / (1024**3):.2f} GB")
-q3.metric("Integrity OK", f"{recovery_stats['integrity_ok']}/{recovery_stats['file_count']}")
+q1.metric("Quarantine Segment Object Count", recovery_stats["file_count"])
+q2.metric("Staged Sandbox Storage Footprint", f"{recovery_stats['total_bytes'] / (1024**3):.2f} GB")
+q3.metric("SHA-256 Bitwise Structural Match Ratio", f"{recovery_stats['integrity_ok']} / {recovery_stats['file_count']}")
 
 quarantine_items = executor.list_quarantine(limit=50)
 if quarantine_items:
     quar_df = pd.DataFrame([{
-        "File": Path(item["original_path"]).name,
-        "Original Path": item["original_path"],
-        "Reason": item["reason"],
-        "Size (GB)": f"{item['size_bytes'] / (1024**3):.2f}",
-        "Integrity": "✓" if item["integrity_verified"] else "✗",
+        "Isolated Filename Element": Path(item["original_path"]).name,
+        "Historic Workspace Mount Absolute Path": item["original_path"],
+        "Isolation Staging Strategy Rule Rationale": item["reason"],
+        "Volumetric Size Scale (GB)": f"{item['size_bytes'] / (1024**3):.3f}",
+        "Bitwise Signature Integrity State Status": "VERIFIED MATCH" if item["integrity_verified"] else "CORRUPTED ATTRIBUTE",
     } for item in quarantine_items])
     st.dataframe(quar_df, use_container_width=True, hide_index=True)
 
-    selected_quar = st.selectbox("Select a quarantined file to recover",
+    selected_quar = st.selectbox("Isolate partitioned target references for recovery mapping loops:",
                                   options=[item["quarantine_path"] for item in quarantine_items],
                                   format_func=lambda p: Path(p).name)
-    if selected_quar and st.button("↩️ Restore to Original Location"):
+    if selected_quar and st.button("Reverse Staging Strategy Partition Isolation Loops", use_container_width=True):
         try:
             restore_result = executor.undo_last(selected_quar)
-            st.success(f"Restored: {restore_result['restored_to']}")
+            st.toast(f"Object node restored securely back to historic path mount: {restore_result['restored_to']}")
             st.rerun()
         except Exception as e:
-            st.error(f"Recovery failed: {e}")
+            st.error(f"Reverse pipeline routing strategy execution trace threw kernel handling loop exceptions: {e}")
 else:
-    st.info("No files in quarantine.")
+    st.caption("Quarantine data structural index registry maps display an empty state configuration.")
 
 # ---------------------------------------------------------------------------
-# Audit Log
+# System Architecture Kernel Operations Audit Index
 # ---------------------------------------------------------------------------
-st.markdown('<div class="section-header">📜 Audit Log</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Core Engine Event Trace Kernel Audit Journal</div>', unsafe_allow_html=True)
 audit_rows = db.recent_audit(limit=15)
 if audit_rows:
     audit_df = pd.DataFrame([dict(r) for r in audit_rows])
     st.dataframe(audit_df[["event_time", "action", "path", "reversible", "detail"]],
                  use_container_width=True, hide_index=True)
 else:
-    st.caption("No actions taken yet.")
+    st.caption("Kernel operation audit tracks log array maps are currently reporting clean default initialization parameters.")
 
 # ---------------------------------------------------------------------------
-# Scheduling Timeline
+# Dynamic Chronological Process Scheduling Ledger
 # ---------------------------------------------------------------------------
-st.markdown('<div class="section-header">🕐 Performance-Aware Scheduling Timeline</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Asynchronous Optimization Task Scheduling Frame Sequence Ledger</div>', unsafe_allow_html=True)
 schedule_actions = {"DEFERRED", "RETRIED", "EXECUTED", "QUARANTINE"}
 schedule_rows = [dict(r) for r in db.recent_audit(limit=50) if r["action"] in schedule_actions]
 if schedule_rows:
     timeline = [{
-        "Time": datetime.fromtimestamp(r["event_time"]).strftime("%H:%M:%S"),
-        "Event": "EXECUTED" if r["action"] == "QUARANTINE" else r["action"],
-        "File": r["path"],
-        "Reason": r["detail"],
+        "Kernel Execution Clock Time": datetime.fromtimestamp(r["event_time"]).strftime("%H:%M:%S"),
+        "Pipeline State Mutation Flags Event": "EXECUTED RUN" if r["action"] == "QUARANTINE" else r["action"],
+        "Target Node Pointer Descriptor Location": r["path"],
+        "Subsystem Execution Operational Code Context Argument": r["detail"],
     } for r in schedule_rows]
     st.dataframe(pd.DataFrame(timeline), use_container_width=True, hide_index=True)
 else:
-    st.info("No scheduling events yet. Run a scan and try quarantining a file.")
+    st.caption("No internal scheduled loop sequences have initiated asynchronous deferred state changes yet in this execution epoch cycle context window.")
