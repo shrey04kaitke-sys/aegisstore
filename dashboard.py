@@ -84,7 +84,7 @@ st.markdown("""
     background: #171923;
     color: #4ba3e3;
     font-size: 0.75rem;
-    font-family: 'Geist Mono', monospace;
+                c1.markdown(f"<div style='font-family: Geist Mono; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
     font-weight: 500;
     padding: 4px 10px;
     border-radius: 4px;
@@ -122,7 +122,7 @@ st.markdown("""
     font-size: 1.75rem;
     font-weight: 600;
     color: var(--text-main);
-    font-family: 'Geist Mono', monospace;
+                c1.markdown(f"<div style='font-family: Geist Mono; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
     letter-spacing: -0.02em;
   }
   
@@ -151,7 +151,7 @@ st.markdown("""
     border-radius: 4px;
     font-size: 0.7rem;
     font-weight: 600;
-    font-family: 'Geist Mono', monospace;
+                c1.markdown(f"<div style='font-family: Geist Mono; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
     text-transform: uppercase;
     letter-spacing: 0.02em;
   }
@@ -201,11 +201,11 @@ st.markdown("""
     font-size: 0.72rem;
     color: #a3a8b4;
     margin-right: 4px;
-    font-family: 'Geist Mono', monospace;
+                c1.markdown(f"<div style='font-family: Geist Mono; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
   }
 
   /* Streamlit native widget customization to blend cleanly */
-  div[data-testid="stMetricValue"] { font-size: 1.5rem !important; font-family: 'Geist Mono', monospace !important; font-weight:600 !important; }
+                c1.markdown(f"<div style='font-family: Geist Mono; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
   div[data-testid="stMetricLabel"] { font-size: 0.75rem !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
   .stDataFrame, div[data-testid="stTable"] { border: 1px solid var(--border-subtle) !important; border-radius: 6px !important; overflow: hidden; }
 </style>
@@ -763,7 +763,7 @@ if results:
             st.markdown(f"**Operational Pipeline Strategy Group: `{action_name}`** — *{guidance}*")
             for r in items:
                 c1, c2 = st.columns(2)
-                c1.markdown(f"<div style='font-family:"Geist Mono"; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
+                c1.markdown(f"<div style='font-family: Geist Mono; font-size:0.85rem; color:var(--text-main); padding: 4px 0;'>`{r['File']}` &middot; {r['Size']} &middot; <span style='color:var(--text-muted);'>{r.get('Reason', r.get('reason', ''))}</span></div>", unsafe_allow_html=True)
                 if action_name == "AUTOMATE":
                     if c2.button("Quarantine Target", key=f"q_{r['Path']}", use_container_width=True):
                         try:
