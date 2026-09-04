@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ FraudShield AI - Explainable Fraud Detection</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <h1>🛡️ FraudShield AI</h1>
+                <p class="subtitle">Explainable Fraud Detection. You Decide.</p>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <section class="input-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📱 Transaction Details</h2>
+                        <p class="card-subtitle">Paste a bank SMS or fill the form below</p>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sms-input">🔔 Paste Bank SMS Message:</label>
+                        <textarea 
+                            id="sms-input" 
+                            class="sms-textarea"
+                            placeholder="Example: ICICI: ₹48,500 debited from A/c ending 1234 on 28-Aug-24 at 02:13 AM to UnknownMerchant..."
+                            rows="4"></textarea>
+                        <button id="parse-sms-btn" class="btn btn-primary">✨ Parse SMS</button>
+                    </div>
+
+                    <div class="divider">OR</div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="amount">💰 Amount (₹):</label>
+                            <input type="number" id="amount" placeholder="48500" />
+                        </div>
+                        <div class="form-group">
+                            <label for="merchant">🏪 Merchant:</label>
+                            <input type="text" id="merchant" placeholder="UnknownMerchant" />
+                        </div>
+                        <div class="form-group">
+                            <label for="location">📍 Location:</label>
+                            <input type="text" id="location" placeholder="Dubai" />
+                        </div>
+                        <div class="form-group">
+                            <label for="time">⏰ Time:</label>
+                            <input type="text" id="time" placeholder="02:13 AM" />
+                        </div>
+                        <div class="form-group">
+                            <label for="device">📱 Device:</label>
+                            <input type="text" id="device" placeholder="New Device" />
+                        </div>
+                        <div class="form-group">
+                            <label for="account">🏦 Account:</label>
+                            <input type="text" id="account" placeholder="****1234" />
+                        </div>
+                    </div>
+
+                    <button id="analyze-btn" class="btn btn-primary btn-large">🔍 Analyze Transaction</button>
+                </div>
+            </section>
+
+            <div id="permission-overlay" class="permission-overlay hidden">
+                <div class="permission-popup">
+                    <div class="permission-icon">🛡️</div>
+                    <h2 class="permission-title">FraudShield</h2>
+                    <p class="permission-text">Wants to analyze this transaction for fraud</p>
+                    
+                    <div class="permission-features">
+                        <div class="feature">✓ Risk Analysis</div>
+                        <div class="feature">✓ Behavior Detection</div>
+                        <div class="feature">✓ Merchant Verification</div>
+                    </div>
+
+                    <div class="permission-buttons">
+                        <button id="deny-btn" class="btn btn-secondary">Block Access</button>
+                        <button id="allow-btn" class="btn btn-primary">Allow & Analyze</button>
+                    </div>
+                </div>
+            </div>
+
+            <section id="results-section" class="results-section hidden">
+                <div class="card risk-score-card">
+                    <div class="risk-header">
+                        <h2>📊 Risk Assessment</h2>
+                    </div>
+                    <div class="risk-display">
+                        <div class="risk-circle">
+                            <div class="risk-score" id="risk-score-value">--</div>
+                            <div class="risk-label">/100</div>
+                        </div>
+                        <div class="risk-info">
+                            <div class="risk-status" id="risk-status">--</div>
+                            <div class="confidence-bar">
+                                <div class="confidence-label">Confidence</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="confidence-fill" style="width: 0%"></div>
+                                </div>
+                                <div class="confidence-value" id="confidence-value">--%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🤖 Why Is This Risky?</h2>
+                    </div>
+                    <div id="explanation" class="explanation-text">Analysis will appear here...</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📈 Risk Factor Breakdown</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="riskBreakdownChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📅 Transaction Timeline</h2>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="timelineChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>💡 Recommendations</h2>
+                    </div>
+                    <div id="recommendations" class="recommendations-list"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📊 Fraud Probability Breakdown</h2>
+                    </div>
+                    <div id="probabilities" class="probability-grid"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🔍 Similar Fraud Cases (From History)</h2>
+                    </div>
+                    <div id="similar-cases" class="similar-cases-list"></div>
+                </div>
+
+                <div class="card decision-card">
+                    <div class="card-header">
+                        <h2>🎯 Your Decision</h2>
+                        <p class="card-subtitle">You have the final say. What should we do?</p>
+                    </div>
+                    <div class="decision-buttons">
+                        <button id="block-btn" class="btn btn-block">🛑 BLOCK THIS TRANSACTION</button>
+                        <button id="allow-btn-decision" class="btn btn-allow">✅ ALLOW THIS TRANSACTION</button>
+                    </div>
+                    <div id="decision-result" class="decision-result hidden"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📋 Transaction History (Last 5)</h2>
+                    </div>
+                    <div class="table-container">
+                        <table id="history-table" class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Merchant</th>
+                                    <th>Risk</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🏆 Your Fraud Prevention Score</h2>
+                    </div>
+                    <div class="prevention-display">
+                        <div class="prevention-circle">
+                            <div class="prevention-score" id="prevention-score">--</div>
+                            <div class="prevention-label">/100</div>
+                        </div>
+                        <div class="prevention-info">
+                            <p id="prevention-text">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            <p>🛡️ FraudShield AI | Explainable Fraud Detection | Sept 2026</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
